@@ -1,0 +1,549 @@
+/*
+  Javier Gonzalez Souto
+  gonzal88@purdue.edu
+
+  Control Unit for Single Cycle
+*/
+
+//Including interfaces
+`include "control_unit_if.vh"
+`include "cpu_types_pkg.vh"
+
+module control_unit (control_unit_if.control cuif);
+   import cpu_types_pkg::*;
+
+   always_comb begin
+      cuif.jump = 1'b0;
+      cuif.Branch = 1'b0;
+      cuif.Dren = 1'b0;
+      cuif.Dwen = 1'b0;
+      cuif.Iren = 1'b1;
+      cuif.halt = 1'b0;
+      cuif.Mem = 2'b00;
+      cuif.ALUsource = 1'b0;
+      cuif.opcode_ALU = ALU_SLTU;
+      cuif.RegW = 1'b1;
+      cuif.ExtSel = 2'bxx;
+      cuif.regDest = 2'b00;
+      cuif.lui = 1'b0;
+      cuif.jr = 1'b0;
+      cuif.BNE = 1'b0;
+            
+      if(cuif.opcode == RTYPE)
+	begin
+	   if(cuif.funct == SLL) 
+	     begin
+		cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_SLL;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+      
+	     end // if (cuif.funct == SLL)
+	   else if(cuif.funct == SRL)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_SRL;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == SRL)
+	   else if(cuif.funct == ADD)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_ADD;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == ADD)
+	   else if(cuif.funct == ADDU)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_ADD;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == ADDU)
+	   else if(cuif.funct == SUB)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_SUB;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == SUB)
+	   else if(cuif.funct == SUBU)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_SUB;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == SUBU)
+	   else if(cuif.funct == AND)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_AND;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == AND)
+	   else if(cuif.funct == OR)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_OR;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == OR)
+	   else if(cuif.funct == XOR)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_XOR;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == XOR)
+	   else if(cuif.funct == NOR)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_NOR;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == NOR)
+	   else if(cuif.funct == SLT)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_SLT;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == SLT)
+	   else if(cuif.funct == SLTU)
+	     begin
+	        cuif.jump = 1'b0;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_SLTU;
+		cuif.RegW = 1'b1;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'b00;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b0;
+		cuif.BNE = 1'b0;
+	     end // if (cuif.funct == SLTU)
+	   else if(cuif.funct == JR)
+	     begin
+	        cuif.jump = 1'b1;
+		cuif.Branch = 1'b0;
+		cuif.Dren = 1'b0;
+		cuif.Dwen = 1'b0;
+		cuif.Iren = 1'b1;
+		cuif.halt = 1'b0;
+		cuif.Mem = 2'b00;
+		cuif.ALUsource = 1'b0;
+		cuif.opcode_ALU = ALU_ADD;
+		cuif.RegW = 1'b0;
+		cuif.ExtSel = 2'bxx;
+		cuif.regDest = 2'bxx;
+		cuif.lui = 1'b0;
+		cuif.jr = 1'b1;	
+		cuif.BNE = 1'b0;	
+	     end // if (cuif.funct == JR)
+	end // if (cuif.opcode == RTYPE)
+      else begin
+	 if(cuif.opcode == J)
+	   begin
+	      cuif.jump = 1'b1;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b0;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b0;
+	      cuif.ExtSel = 2'bxx;
+	      cuif.regDest = 2'bxx;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == J)
+	 else if(cuif.opcode == JAL)
+	   begin
+	      cuif.jump = 1'b1;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b10;
+	      cuif.ALUsource = 1'b0;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'bxx;
+	      cuif.regDest = 2'b10;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == JAL)
+	 else if(cuif.opcode == BEQ)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b1;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b0;
+	      cuif.opcode_ALU = ALU_SUB;
+	      cuif.RegW = 1'b0;
+	      cuif.ExtSel = 2'bxx;
+	      cuif.regDest = 2'bxx;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == BEQ)
+	  else if(cuif.opcode == BNE)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b0;
+	      cuif.opcode_ALU = ALU_SUB;
+	      cuif.RegW = 1'b0;
+	      cuif.ExtSel = 2'bxx;
+	      cuif.regDest = 2'bxx;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b1;
+	   end // if (cuif.opcode == BNE)
+	  else if(cuif.opcode == ADDI)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b01;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == ADDI)
+	  else if(cuif.opcode == ADDIU)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b01;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == ADDIU)
+	  else if(cuif.opcode == SLTI)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_SLT;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b01;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == SLTI)
+	  else if(cuif.opcode == SLTIU)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_SLTU;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b01;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == SLTIU)
+	  else if(cuif.opcode == ANDI)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_AND;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b00;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == ANDI)
+	  else if(cuif.opcode == ORI)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_OR;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b00;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == ORI)
+	  else if(cuif.opcode == XORI)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_XOR;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b00;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == XORI)
+	  else if(cuif.opcode == LUI)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b10;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b1;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == LUI)
+	  else if(cuif.opcode == LW)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b1;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b01;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b01;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == LW)
+	  else if(cuif.opcode == SW)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b1;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b0;
+	      cuif.ExtSel = 2'b01;
+	      cuif.regDest = 2'bxx;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == SW)
+	  else if(cuif.opcode == HALT)
+	    begin
+	       cuif.jump = 1'b0;
+	       cuif.Branch = 1'b0;
+	       cuif.Dren = 1'b0;
+	       cuif.Dwen = 1'b0;
+	       cuif.Iren = 1'b0;
+	       cuif.halt = 1'b1;
+	       cuif.Mem = 2'b00;
+	       cuif.ALUsource = 1'b0;
+	       cuif.opcode_ALU = ALU_ADD;
+	       cuif.RegW = 1'b0;
+	       cuif.ExtSel = 2'bxx;
+	       cuif.regDest = 2'bxx;
+	       cuif.lui = 1'b0;
+	       cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	    end // if (cuif.halt == HALT)
+      end // else: !if(cuif.opcode == RTYPE)
+   end // always_comb
+endmodule // control
+
+	 
+      
+	     
+	   
+   

@@ -1,0 +1,93 @@
+`include "cpu_types_pkg.vh"
+`include "alu_if.vh"
+
+
+module alu
+  import cpu_types_pkg::*;
+   ( 
+     alu_if.rf rfif
+     );
+
+   always_comb begin
+      rfif.neg_flag = 0;
+      rfif.zero_flag = 0;
+      rfif.over_flag = 0;
+
+      rfif.outport = 0;
+ 
+      if (rfif.aluop == ALU_ADD) begin
+         rfif.outport = $signed(rfif.portA) + $signed(rfif.portB);
+	 if (((rfif.portA[31] == 1'b1) & (rfif.portB[31] == 1'b1) & (rfif.outport[31] == 1'b0)) | ((rfif.portB[31] == 1'b0) && (rfif.portA[31] == 1'b0) && (rfif.outport[31] == 1'b1))) begin
+            rfif.over_flag = 1'b1;
+         end
+         else begin
+            rfif.over_flag = 1'b0;
+         end
+      end
+      else if (rfif.aluop == ALU_SUB) begin
+         rfif.outport = $signed(rfif.portA) - $signed(rfif.portB);
+	 if (rfif.portA[31]  != rfif.portB[31]) begin
+            if (rfif.outport[31] !=  rfif.portA[31]) begin
+               rfif.over_flag = 1'b1;
+            end
+            else begin
+               rfif.over_flag = 1'b0;
+            end
+         end
+         else begin
+            rfif.over_flag = 1'b0;
+         end
+      end     
+      else if (rfif.aluop == ALU_AND) begin
+         rfif.outport = rfif.portA & rfif.portB;
+	 rfif.over_flag = 1'b0;
+      end    
+      else if (rfif.aluop == ALU_OR) begin
+         rfif.outport = rfif.portA | rfif.portB;
+	 rfif.over_flag = 1'b0;
+      end
+      else if (rfif.aluop == ALU_XOR) begin
+         rfif.outport = rfif.portA ^ rfif.portB;
+	 rfif.over_flag = 1'b0;
+      end    
+      else if (rfif.aluop == ALU_NOR) begin
+         rfif.outport = ~(rfif.portA | rfif.portB);
+	 rfif.over_flag = 1'b0;
+      end
+      else if (rfif.aluop == ALU_SLT) begin
+         rfif.outport = ($signed(rfif.portA) < $signed(rfif.portB));
+	 rfif.over_flag = 1'b0;
+      end
+      else if (rfif.aluop == ALU_SLTU) begin
+         rfif.outport = (rfif.portA < rfif.portB);
+	 rfif.over_flag = 1'b0;
+      end
+      else if (rfif.aluop == ALU_SLL) begin 
+         rfif.outport = rfif.portA << rfif.portB;
+	 rfif.over_flag = 1'b0;
+      end     
+      else if (rfif.aluop == ALU_SRL) begin
+         rfif.outport = rfif.portA >> rfif.portB;
+	 rfif.over_flag = 1'b0;
+      end
+
+
+      //Setting flags
+      
+      if (rfif.outport == 0) begin
+	 rfif.zero_flag = 1'b1;
+      end
+      else begin
+	 rfif.zero_flag = 1'b0;
+      end
+
+      if (rfif.outport[31] == 0) begin
+	 rfif.neg_flag = 1'b0;
+      end
+      else begin
+	 rfif.neg_flag = 1'b1;
+      end
+      
+   end // always_comb
+
+endmodule

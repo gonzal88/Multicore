@@ -1,0 +1,26 @@
+/*
+  Javier Gonzalez Souto
+  gonzal88@purdue.edu
+
+  IDEX interface
+ */
+
+
+`ifndef IDEX_IF_VH
+ `define IDEX_IF_VH
+
+ `include "cpu_types_pkg.vh"
+
+interface idex_if;
+   import cpu_types_pkkg::*;
+
+   word_t rdat2_o, rdat2_i, rdat1_i, rdat1_o;
+   logic flush;
+
+   modport de(
+	      input flush, rdat2_i, rdat1_i
+	      output rdat1_o, rdat2_o
+	      );
+endinterface // ifid_if
+
+`endif

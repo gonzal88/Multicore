@@ -1,0 +1,20 @@
+`ifndef EXTENDER_IF_VH
+`define EXTENDER_IF_VH
+
+`include "cpu_types_pkg.vh"
+
+interface extender_if;
+
+   import cpu_types_pkg::*;
+   
+   logic [2:0] ExtSel;
+   logic [15:0] imm;
+   word_t extout;
+
+   modport ext (
+		input ExtSel, imm,
+		output extout
+		);
+
+endinterface
+`endif
