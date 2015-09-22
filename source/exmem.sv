@@ -20,7 +20,7 @@ module exmem
    always_ff @(posedge CLK, negedge nRST) begin
       if (!nRST) begin
 	 exme.npc_o <= 0;
-	 exme.bnpc_o <= 0;
+	 //exme.bnpc_o <= 0;
 	 exme.Jaddr_o <= 0;
 	 exme.rdat2_o <= 0;
 	 exme.aluout_o <= 0;
@@ -45,7 +45,7 @@ module exmem
       else begin
 	 if (exme.flush) begin
 	    exme.npc_o <= exme.npc_i;
-	    exme.bnpc_o <= exme.bnpc_i;
+	    //exme.bnpc_o <= exme.bnpc_i;
 	    exme.Jaddr_o <= exme.Jaddr_i;
 	    exme.rdat2_o <= exme.rdat2_i;
 	    exme.aluout_o <= exme.aluout_i;
@@ -68,7 +68,7 @@ module exmem
 	 end
 	 else begin
 	    exme.npc_o <= 0;
-	    exme.bnpc_o <= 0;
+	    //exme.bnpc_o <= 0;
 	    exme.Jaddr_o <= 0;
 	    exme.rdat2_o <= 0;
 	    exme.aluout_o <= 0;

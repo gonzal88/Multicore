@@ -20,7 +20,7 @@ module exmem
    always_ff @(posedge CLK, negedge nRST) begin
       if (!nRST) begin
 	 exme.npc_o <= 0;
-	 exme.bnpc_o <= 0;
+	 //exme.bnpc_o <= 0;
 	 exme.Jaddr_o <= 0;
 	 exme.rdat2_o <= 0;
 	 exme.aluout_o <= 0;
@@ -36,14 +36,16 @@ module exmem
 	 exme.Rd_o <= 0;
 	 exme.Rt_o <= 0;
 	 exme.opcode_o <= RTYPE;
-	 exme.Jump_o <= 0;
-		   
+	 exme.jump_o <= 0;
+	 exme.lui_o <= 0;
+	 exme.jr_o <= 0;
+	 exme.BNE_o <= 0;
       end
       
       else begin
-	 if (exme.emen) begin
+	 if (exme.flush) begin
 	    exme.npc_o <= exme.npc_i;
-	    exme.bnpc_o <= exme.bnpc_i;
+	    //exme.bnpc_o <= exme.bnpc_i;
 	    exme.Jaddr_o <= exme.Jaddr_i;
 	    exme.rdat2_o <= exme.rdat2_i;
 	    exme.aluout_o <= exme.aluout_i;
@@ -59,7 +61,10 @@ module exmem
 	    exme.Rd_o <= exme.Rd_i;
 	    exme.Rt_o <= exme.Rt_i;
 	    exme.opcode_o <= exme.opcode_i;
-	    exme.Jump_o <= exme.Jump_i;
+	    exme.jump_o <= exme.jump_i;
+	    exme.lui_o <= exme.lui_i;
+	    exme.jr_o <= exme.jr_i;
+	    exme.BNE_o <= exme.BNE_i;
 	 end
 	 else begin
 	    exme.npc_o <= 0;
@@ -79,10 +84,13 @@ module exmem
 	    exme.Rd_o <= 0;
 	    exme.Rt_o <= 0;
 	    exme.opcode_o <= RTYPE;
-	    exme.Jump_o <= 0;
-	    
+	    exme.jump_o <= 0;
+	    exme.lui_o <= 0;
+	    exme.jr_o <= exme.jr_i;
+	    exme.BNE_o <= exme.BNE_i;
 	 end
       end
    end
    
 endmodule
+
