@@ -31,17 +31,13 @@ module idex
 	 ide.DRen_o <= 0;
 	 ide.lui_o <= 0;
 	 ide.jr_o <= 0;
-	 ide.BNE <= 0;
+	 ide.BNE_o <= 0;
 	 ide.DWen_o <= 0;
 	 ide.ALUop_o <= ALU_ADD;
 	 ide.RegW_o <= 0;
 	 ide.RegDest_o <= 0;
 	 ide.halt_o <= 0;
-	 ide.Rd_o <= 0;
-	 ide.Rt_o <= 0;
-	 ide.Rs_o <= 0;
 	 ide.opcode_o <= RTYPE;
-	 //ide.bnpc_o <= 0;
 	 ide.jump_o <= 0;
       end // if (!nRST)
       else begin
@@ -57,17 +53,13 @@ module idex
 	    ide.DRen_o <= ide.DRen_i;
 	    ide.lui_o <= ide.lui_i;
 	    ide.jr_o <= ide.jr_i;
-	    ide.BNE <= ide.BNE_i;
+	    ide.BNE_o <= ide.BNE_i;
 	    ide.DWen_o <= ide.DWen_i;
-	    ide.ALUop_o <= ALU_ADD;
+	    ide.ALUop_o <= ide.ALUop_i;
 	    ide.RegW_o <= ide.RegW_i;
 	    ide.RegDest_o <= ide.RegDest_i;
 	    ide.halt_o <= ide.halt_i;
-	    ide.Rd_o <= ide.Rd_i;
-	    ide.Rt_o <= ide.Rt_i;
-	    ide.Rs_o <= ide.Rs_i;
-	    ide.opcode_o <= RTYPE;
-	    //ide.bnpc_o <= 0;
+	    ide.opcode_o <= ide.opcode_i;
 	    ide.jump_o <= ide.jump_i;
 	 end // if (!ieif.flush)
 	 else begin
@@ -82,17 +74,13 @@ module idex
 	    ide.DRen_o <= 0;
 	    ide.lui_o <= 0;
 	    ide.jr_o <= 0;
-	    ide.BNE <= 0;
+	    ide.BNE_o <= 0;
 	    ide.DWen_o <= 0;
 	    ide.ALUop_o <= ALU_ADD;
 	    ide.RegW_o <= 0;
 	    ide.RegDest_o <= 0;
 	    ide.halt_o <= 0;
-	    ide.Rd_o <= 0;
-	    ide.Rt_o <= 0;
-	    ide.Rs_o <= 0;
 	    ide.opcode_o <= RTYPE;
-	    //ide.bnpc_o <= 0;
 	    ide.jump_o <= 0;
 	 end // else: !if(!ide.flush)
       end // else: !if(!nRST)

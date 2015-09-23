@@ -12,10 +12,10 @@
  `include "cpu_types_pkg.vh"
 
 interface memwb_if;
-   import cpu_types_pkkg::*;
+   import cpu_types_pkg::*;
 
-   word_t extout_i, extout_o, Jaddr_i, Jaddr_o, Rd_i, Rd_o, Rt_i, Rt_o, npc_o, npc_i;
-   logic flush, lui_i, lui_o, jr_i, jr_o, RegW_i, RegW_o, ALUsource_i, ALUsource_o, halt_i, halt_o;
+   word_t Addr_i, Addr_o, npc_o, npc_i, alu_out_i, alu_out_o;
+   logic flush, RegW_i, RegW_o, halt_i, halt_o;
    logic [1:0] Mem_i, Mem_o, RegDest_i, RegDest_o;
    
    opcode_t opcode_i, opcode_o;
@@ -23,9 +23,9 @@ interface memwb_if;
    
    
 
-   modport ex(
-	      input  flush, extout_i, Jaddr_i, Rd_i, Rt_i, npc_i, lui_i, jr_i, RegW_i, ALUsource_i, halt_i,
-	      output extout_o, Jaddr_o, Rd_o, Rt_o, npc_o, lui_o, jr_o, RegW_o, ALUsource_o, halt_o
+   modport me(
+	      input  flush, Addr_i, npc_i,  RegW_i, halt_i, opcode_i, alu_out_i, Mem_i, RegDest_i,
+	      output Addr_o, npc_o, RegW_o, halt_o, opcode_o, alu_out_o, Mem_o, RegDest_o
 	      );
 endinterface // exmem_if
 
