@@ -163,7 +163,8 @@ module datapath (
    assign exme.Jaddr_i = idex.Jaddr_o;
    assign exme.npc_i = idex.npc_o;
    assign exme.extout_i = {idex.extout_o, 2'b00} + idex.npc_o;
-      
+   assign exme.enable = 1'b1;
+   
 
 
    always_comb begin
@@ -195,6 +196,7 @@ module datapath (
    assign mem.RegW_i = exme.RegW_o;
    assign mem.RegDest_i = exme.RegDest_o;
    assign mem.opcode_i = exme.opcode_o;
+   assign mem.enable = 1'b1;
    assign dpif.dmemaddr = exme.alu_out_o;
    assign dpif.dmemstore = exme.rdat2_o;
    assign dpif.dmemREN = exme.DRen_o;

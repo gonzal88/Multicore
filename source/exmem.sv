@@ -40,7 +40,7 @@ module exmem
       end
       
       else begin
-	 if (exme.flush) begin
+	 if (exme.enable) begin
 	    exme.npc_o <= exme.npc_i;
 	    exme.Jaddr_o <= exme.Jaddr_i;
 	    exme.rdat2_o <= exme.rdat2_i;

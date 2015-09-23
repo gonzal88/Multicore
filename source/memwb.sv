@@ -30,7 +30,7 @@ module memwb
       end
       
       else begin
-	 if (mwif.flush) begin
+	 if (mwif.enable) begin
 	    mwif.npc_o <= mwif.npc_i;
 	    mwif.Addr_o <= mwif.Addr_i;
 	    mwif.Mem_o <= mwif.Mem_i;
