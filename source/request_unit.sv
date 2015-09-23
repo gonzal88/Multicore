@@ -25,6 +25,7 @@ module request_unit (input logic CLK, nRst, request_unit_if.re ruif);
 	  begin
 	     ruif.dWEN <= 1'b0;
 	     ruif.dREN <= 1'b0;
+	     ruif.iREN <= 1'b0;
 	  end
 	else begin
 	   if (ruif.halt)
@@ -37,11 +38,13 @@ module request_unit (input logic CLK, nRst, request_unit_if.re ruif);
 	     begin
 		ruif.dWEN <= 1'b0;
 		ruif.dREN <= 1'b0;
+		ruif.iREN <= 1'b1;
 	     end
 	   else 
 	     begin
 		ruif.dWEN <= cuif.Dwen;
 		ruif.dREN <= cuif.Dren;
+		ruif.iREN <= 1'b1;
 	     end
 	end // else: !if(!nRst)
      end // always_ff @
