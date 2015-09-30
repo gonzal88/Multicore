@@ -12,7 +12,7 @@ module extender (
 
 always_comb begin
    casez (eif.ExtSel)//Coming from the control Unit
-     2'b01:
+     2'b01://sign ext
        if (eif.imm[15] == 1'b0) begin
 	  eif.extout = {16'b0000000000000000, eif.imm};
        end

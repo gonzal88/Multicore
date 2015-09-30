@@ -2,7 +2,7 @@
   Javier Gonzalez Souto
   gonzal88@purdue.edu
 
-  Request Unit for Single Cycle
+  Request Unit for pipeline
 */
 
 `ifndef REQUEST_UNIT_VH
@@ -16,7 +16,9 @@ module request_unit (input logic CLK, nRst, request_unit_if.re ruif);
    control_unit control (cuif);
    
  
-   assign ruif.PCen = (ruif.ihit && !ruif.dhit);  
+   assign ruif.PCen = (ruif.ihit && !ruif.halt );
+   
+//&& !ruif.dhit);  
    
    
    always_ff @(posedge CLK or negedge nRst) 
@@ -25,28 +27,25 @@ module request_unit (input logic CLK, nRst, request_unit_if.re ruif);
 	  begin
 	     ruif.dWEN <= 1'b0;
 	     ruif.dREN <= 1'b0;
-	     ruif.iREN <= 1'b0;
+	     ruif.iREN <= 1'b1;
 	  end
 	else begin
-	   if (ruif.halt)
+	   if (ruif.dhit) 
 	     begin
 		ruif.dWEN <= 1'b0;
-		ruif.dREN <= 1'b0;
-		ruif.iREN <= 1'b0;
-	     end
-	   else if (ruif.dhit) 
-	     begin
-		ruif.dWEN <= 1'b0;
-		ruif.dREN <= 1'b0;
 		ruif.iREN <= 1'b1;
+		ruif.dREN <= 1'b0;
 	     end
-	   else 
+	   else if (ruif.ihit && !ruif.dhit) 
 	     begin
 		ruif.dWEN <= cuif.Dwen;
 		ruif.dREN <= cuif.Dren;
 		ruif.iREN <= 1'b1;
 	     end
 	end // else: !if(!nRst)
+	
+	
+	
      end // always_ff @
 			
 endmodule // request

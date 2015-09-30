@@ -21,21 +21,25 @@ module ifid
    always_ff @(posedge CLK, negedge nRST) begin
       if (!nRST) begin
 	 ifd.npc_o <= 0;
-	 ifd.iload_o <= 0;		   
+	 ifd.iload_o <= 0;
+	 ifd.dload_o <= 0;		   
       end
       else begin
 	 if (ifd.flush) begin
 	    ifd.npc_o <= 0;
 	    ifd.iload_o <= 0;
+	    ifd.dload_o <= 0;
 	 end
 	 else  begin
 	    if(ifd.iien) begin
 	       ifd.npc_o <= ifd.npc_i;
 	       ifd.iload_o <= ifd.iload_i;
+	       ifd.dload_o <= ifd.dload_i;
 	    end
 	    else begin
 	       ifd.npc_o <= ifd.npc_o;
 	       ifd.iload_o <= ifd.iload_o;
+	       ifd.dload_o <= ifd.dload_i;
 	    end
 	 end
       end

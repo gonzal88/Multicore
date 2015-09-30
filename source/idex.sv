@@ -38,7 +38,14 @@ module idex
 	 ide.RegDest_o <= 0;
 	 ide.halt_o <= 0;
 	 ide.opcode_o <= RTYPE;
+	 ide.funct_o <= ide.funct_i;
 	 ide.jump_o <= 0;
+	 ide.rs_o <= 0;
+	 ide.rd_o <= 0;
+	 ide.rt_o <= 0;
+	 ide.shamt_o <= 0;
+	 ide.dload_o <= 0;
+	 
       end // if (!nRST)
       else begin
 	 if (!ide.flush) begin
@@ -60,8 +67,14 @@ module idex
 	    ide.RegDest_o <= ide.RegDest_i;
 	    ide.halt_o <= ide.halt_i;
 	    ide.opcode_o <= ide.opcode_i;
+	    ide.funct_o <= ide.funct_i;
 	    ide.jump_o <= ide.jump_i;
-	 end // if (!ieif.flush)
+	    ide.rs_o <= ide.rs_i;
+	    ide.rd_o <= ide.rd_i;
+	    ide.rt_o <= ide.rt_i;
+	    ide.shamt_o <= ide.shamt_i;
+	    ide.dload_o <= ide.dload_i;
+	 end // if (!ide.flush)
 	 else begin
 	    ide.npc_o <= 0;
 	    ide.Jaddr_o <= 0;
@@ -81,8 +94,14 @@ module idex
 	    ide.RegDest_o <= 0;
 	    ide.halt_o <= 0;
 	    ide.opcode_o <= RTYPE;
+	    ide.funct_o <= ide.funct_i;
 	    ide.jump_o <= 0;
-	 end // else: !if(!ide.flush)
+	    ide.rs_o <= 0;
+	    ide.rd_o <= 0;
+	    ide.rt_o <= 0;
+	    ide.shamt_o <= 0;
+	    ide.dload_o <= 0;
+	 end
       end // else: !if(!nRST)
    end // always_ff @
    

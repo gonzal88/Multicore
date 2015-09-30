@@ -18,8 +18,8 @@ interface control_unit_if;
    opcode_t       opcode;
    funct_t        funct;
 
-   logic          zero_flag, over_flag, lui, jr, RegW, Branch, jump, Dwen, Dren, Iren, halt,  ALUsource, BNE;
-   logic [1:0]    regDest, ExtSel, Mem;
+   logic          zero_flag, over_flag, lui, jr, RegW, Branch, jump, Dwen, Dren, Iren, halt, BNE;
+   logic [1:0]    regDest, ExtSel, Mem, ALUsource;
    aluop_t        opcode_ALU;
 
    modport control(

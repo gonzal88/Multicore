@@ -18,7 +18,7 @@ module exmem
    import cpu_types_pkg::*;
    
    always_ff @(posedge CLK, negedge nRST) begin
-      if (!nRST) begin
+      if (!nRST || exme.flush) begin
 	 exme.npc_o <= 0;
 	 exme.Jaddr_o <= 0;
 	 exme.rdat2_o <= 0;
@@ -33,10 +33,16 @@ module exmem
 	 exme.RegDest_o <= 0;
 	 exme.halt_o <= 0;
 	 exme.opcode_o <= RTYPE;
+	 exme.funct_o <= exme.funct_i;
 	 exme.jump_o <= 0;
 	 exme.jr_o <= 0;
 	 exme.BNE_o <= 0;
 	 exme.zero_o <= 0;
+	 exme.rs_o <= 0;
+	 exme.rd_o <= 0;
+	 exme.rt_o <= 0;
+	 exme.dload_o <= 0;
+	 
       end
       
       else begin
@@ -55,31 +61,16 @@ module exmem
 	    exme.RegDest_o <= exme.RegDest_i;
 	    exme.halt_o <= exme.halt_i;
 	    exme.opcode_o <= exme.opcode_i;
+	    exme.funct_o <= exme.funct_i;
 	    exme.jump_o <= exme.jump_i;
 	    exme.jr_o <= exme.jr_i;
 	    exme.BNE_o <= exme.BNE_i;
 	    exme.zero_o <= exme.zero_i;
-	 end
-	 else begin
-	    exme.npc_o <= 0;
-	    exme.Jaddr_o <= 0;
-	    exme.rdat2_o <= 0;
-	    exme.rdat1_o <= 0;
-	    exme.alu_out_o <= 0;
-	    exme.extout_o <= 0;
-	    exme.Mem_o <= 0;
-	    exme.Branch_o <= 0;
-	    exme.DRen_o <= 0;
-	    exme.DWen_o <= 0;
-	    exme.RegW_o <= 0;
-	    exme.RegDest_o <= 0;
-	    exme.halt_o <= 0;
-	    exme.opcode_o <= RTYPE;
-	    exme.jump_o <= 0;
-	    exme.jr_o <= 0;
-	    exme.BNE_o <= 0;
-	    exme.zero_o <= 0;
-	 end
+	    exme.rs_o <= exme.rs_i;
+	    exme.rd_o <= exme.rd_i;
+	    exme.rt_o <= exme.rt_i;
+	    exme.dload_o <= exme.dload_i;
+	 end // if (exme.flush)
       end
    end
    
