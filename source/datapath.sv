@@ -93,7 +93,9 @@ module datapath (
    
    always_comb begin
 
-
+      check = 1'b0;
+      hazard_enable = 1'b0;
+      
       if (opcode_t'(ifid.iload_o[31:26]) == HALT) begin
 	 hazard_enable = 1'b0;
       end
@@ -235,7 +237,6 @@ module datapath (
    assign idex.Mem_i = cuif.Mem;
    assign idex.BNE_i = cuif.BNE;
    assign idex.opcode_i = opcode_t'(ifid.iload_o[31:26]);
-   assign idex.funct_i = funct_t'(ifid.iload_o[5:0]);
    assign idex.rdat2_i = rfif.rdat2;
    assign idex.rdat1_i = rfif.rdat1;
    assign idex.rs_i = rtype.rs;
@@ -291,7 +292,6 @@ module datapath (
    assign alif.portB = ALUSrc_out;
    assign alif.aluop = idex.ALUop_o;
    assign exme.opcode_i = idex.opcode_o;
-   assign exme.funct_i = idex.funct_o;
    assign exme.rdat1_i = idex.rdat1_o;
    assign exme.zero_i = alif.zero_flag;
    assign exme.alu_out_i = alif.outport;
