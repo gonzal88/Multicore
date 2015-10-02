@@ -67,6 +67,7 @@ module datapath (
    regbits_t   RegDst_out;            //RegDst mux output
    word_t      extout2, memREGdata, JumpAddr, next_PC, npc, jump_out;
    logic     branch_out, branchd, hazard_enable, check;
+   logic [1:0] fwrdA, fwrdB;
    
    
    //Instruction FETCH
@@ -92,101 +93,16 @@ module datapath (
 
    
    always_comb begin
-
+      hazard_enable = idex.DRen_o && (idex.target_o == rtype.rs || idex.target_o == rtype.rt);
+      fwrdA = 2'b00;
+      fwrdB = 2'b00;
       
-      //hazard_enable = 1'b0;
-      
-      if (opcode_t'(ifid.iload_o[31:26]) == HALT) begin
-	 hazard_enable = 1'b0;
-	 check = 1'b0;
+      if (exme.RegW_o && (exme.target_o != 0) && (exme.target_o == idex.rs_o)) begin
+	 fwrdA = 2'b10;
       end
-      else if(idex.opcode_o != JAL && exme.opcode_o != JAL) begin
-	 if ((idex.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE && !check) || (exme.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE)) begin
-	    if((idex.rd_o == rtype.rs || idex.rd_o == rtype.rt) && (idex.rd_o != 0)) begin
-	       hazard_enable = 1'b1;
-	       check = 1'b0;
-	    end
-	    else if ((exme.rd_o ==  rtype.rs || exme.rd_o == rtype.rt) && (exme.rd_o)) begin
-	       hazard_enable =1'b1;
-	       check = 1'b0;
-	    end
-	    else begin
-	       hazard_enable = 1'b0;
-	       check = 1'b0;
-	    end
-	 end // if ((idex.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE))
-	 else if((idex.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE && !check) || (exme.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE)) begin
-	    if((idex.rd_o == rtype.rt || idex.rd_o == rtype.rs) && (idex.rd_o != 0))begin
-	       hazard_enable = 1'b1;
-	       check = 1'b0;
-	    end
-	    else if ((exme.rd_o == rtype.rt || exme.rd_o == rtype.rs) && (exme.rd_o != 0)) begin
-	       hazard_enable = 1'b1;
-	       check = 1'b0;
-	    end
-	    else begin
-	       hazard_enable = 1'b0;
-	       check = 1'b0;
-	    end
-	 end
-	 else if((idex.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE) || (exme.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE)) begin
-	    if((idex.rt_o == rtype.rs || idex.rt_o == rtype.rt) && (idex.rt_o != 0))begin
-	       check = 1'b1;
-	       hazard_enable = 1'b1;
-	    end
-	    else if((exme.rt_o == rtype.rs || exme.rt_o == rtype.rt) && (exme.rt_o != 0)) begin
-	       check = 1'b1;
-	       hazard_enable = 1'b1;
-	    end
-	    else begin
-	       check = 1'b0;
-	       hazard_enable = 1'b0;
-	    end
-	 end // if ((idex.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE))
-	 else if((idex.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE) || (exme.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE)) begin
-	    if((idex.rt_o == rtype.rs || idex.rt_o == rtype.rt) && (idex.rt_o != 0))begin
-	       check = 1'b1;
-	       hazard_enable = 1'b1;
-	    end
-	    else if((exme.rt_o == rtype.rs || exme.rt_o == rtype.rt) && (exme.rt_o != 0)) begin
-	       check = 1'b1;
-	       hazard_enable = 1'b1;
-	    end
-	    else begin
-	       check = 1'b0;
-	       hazard_enable = 1'b0;
-	    end
-	 end // if ((idex.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE))
-	 else begin
-	    check = 1'b0;
-	    hazard_enable = 1'b0;
-	 end // else: !if((idex.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE) || (exme.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE))
-      end // if (idex.opcode_o != JAL && exme.opcode_o != JAL)
-      else if (idex.opcode_o == JAL)begin
-	 if(rtype.rs == 31 || rtype.rt == 31) begin
-	    hazard_enable = 1'b1;
-	    check = 1'b0;
-	 end
-	 else begin
-	    hazard_enable = 1'b0;
-	    check = 1'b0;
-	 end
-      end // if (idex.opcode_o == JAL)
-      else if (exme.opcode_o == JAL) begin
-	 if(rtype.rs == 31 || rtype.rt == 31) begin
-	    hazard_enable = 1'b1;
-	    check = 1'b0;
-	 end
-	 else begin
-	    hazard_enable = 1'b0;
-	    check = 1'b0;
-	 end
-      end // if (exme.opcode_o == JAL)
-      else begin
-	 hazard_enable = 1'b0;
-	 check = 1'b0;
-      end // else: !if(exme.opcode_o == JAL)
-            
+      if (exme.RegW_o && (exme.target_o != 0) && (exme.target_o == idex.rt_o)) begin
+	 fwrdB = 2'b10;
+      end
    end // always_comb
 	
 	 
@@ -234,6 +150,7 @@ module datapath (
 //mem.rd_o;
    assign rfif.WEN = mem.RegW_o;
    assign rfif.wsel = RegDst_out;
+   assign idex.target_i = RegDst_out;
    assign rfif.wdat = MtR_out;
    assign eif.imm = ifid.iload_o[15:0];
    assign eif.ExtSel = cuif.ExtSel;
@@ -268,15 +185,15 @@ module datapath (
    
    
    always_comb begin
-      if(mem.RegDest_o == 2'b10) begin
+      if(cuif.RegDest == 2'b10) begin
 	 RegDst_out = 31;
       end
-      else if (mem.RegDest_o == 2'b01) begin
+      else if (cuif.RegDest == 2'b01) begin
 	 RegDst_out = mem.rt_o;//
 //rtype.rt;
 
       end
-      else if (mem.RegDest_o == 2'b00) begin
+      else if (cuif.RegDest == 2'b00) begin
 	 RegDst_out = mem.rd_o;//
 //rtype.rs;
       end
@@ -331,6 +248,8 @@ module datapath (
    assign exme.rt_i = idex.rt_o;
    assign exme.dload_i = idex.dload_o;
    assign exme.enable = dpif.dhit || dpif.ihit;
+   assign exme.target_i = idex.target_o;
+   
    
    
    
@@ -378,6 +297,8 @@ module datapath (
    assign mem.dload_i = dpif.dmemload;
 //exme.dload_o;
    assign mem.enable = dpif.dhit || dpif.ihit;
+   assign mem.target_i = exme.target_o;
+   
    
       
    
