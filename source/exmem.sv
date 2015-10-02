@@ -42,6 +42,7 @@ module exmem
 	 exme.rd_o <= 0;
 	 exme.rt_o <= 0;
 	 exme.dload_o <= 0;
+	 exme.target_o <= 0;
 	 
       end
       
@@ -70,6 +71,7 @@ module exmem
 	    exme.rd_o <= exme.rd_i;
 	    exme.rt_o <= exme.rt_i;
 	    exme.dload_o <= exme.dload_i;
+	    exme.target_o <= exme.target_i;
 	 end // if (exme.flush)
 	 else begin
 	    exme.npc_o <= 0;
@@ -95,6 +97,7 @@ module exmem
 	    exme.rd_o <= 0;
 	    exme.rt_o <= 0;
 	    exme.dload_o <= 0;
+	    exme.target_o <= 0;
 	 end
       end // else: !if(!nRST || exme.flush)
    end // always_ff @

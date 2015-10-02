@@ -45,6 +45,7 @@ module idex
 	 ide.rt_o <= 0;
 	 ide.shamt_o <= 0;
 	 ide.dload_o <= 0;
+	 ide.target_o <= 0;
 	 
       end // if (!nRST)
       else begin
@@ -74,6 +75,7 @@ module idex
 	    ide.rt_o <= ide.rt_i;
 	    ide.shamt_o <= ide.shamt_i;
 	    ide.dload_o <= ide.dload_i;
+	    ide.target_o <= ide.target_i;
 	 end // if (!ide.flush)
 	 else begin
 	    ide.npc_o <= 0;
@@ -101,6 +103,7 @@ module idex
 	    ide.rt_o <= 0;
 	    ide.shamt_o <= 0;
 	    ide.dload_o <= 0;
+	    ide.target_o <= 0;
 	 end
       end // else: !if(!nRST)
    end // always_ff @
