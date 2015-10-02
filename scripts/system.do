@@ -1,25 +1,33 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /system_tb/CLK
-add wave -noupdate /system_tb/nRST
 add wave -noupdate /system_tb/DUT/CPU/DP/PC_INIT
 add wave -noupdate /system_tb/DUT/CPU/DP/CLK
 add wave -noupdate /system_tb/DUT/CPU/DP/nRST
-add wave -noupdate /system_tb/DUT/CPU/DP/rtype
+add wave -noupdate -expand /system_tb/DUT/CPU/DP/rtype
+add wave -noupdate /system_tb/DUT/CPU/DP/itype
+add wave -noupdate /system_tb/DUT/CPU/DP/jtype
 add wave -noupdate /system_tb/DUT/CPU/DP/MtR_out
 add wave -noupdate /system_tb/DUT/CPU/DP/ALUSrc_out
 add wave -noupdate /system_tb/DUT/CPU/DP/Mux_lui
 add wave -noupdate /system_tb/DUT/CPU/DP/Baddr
 add wave -noupdate /system_tb/DUT/CPU/DP/RegDst_out
+add wave -noupdate /system_tb/DUT/CPU/DP/extout2
+add wave -noupdate /system_tb/DUT/CPU/DP/memREGdata
+add wave -noupdate /system_tb/DUT/CPU/DP/JumpAddr
+add wave -noupdate /system_tb/DUT/CPU/DP/next_PC
 add wave -noupdate /system_tb/DUT/CPU/DP/npc
 add wave -noupdate /system_tb/DUT/CPU/DP/jump_out
 add wave -noupdate /system_tb/DUT/CPU/DP/branch_out
+add wave -noupdate /system_tb/DUT/CPU/DP/branchd
+add wave -noupdate /system_tb/DUT/CPU/DP/hazard_enable
+add wave -noupdate /system_tb/DUT/CPU/DP/check
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/halt
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/ihit
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/imemREN
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/imemload
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/imemaddr
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/dhit
+add wave -noupdate /system_tb/DUT/CPU/DP/dpif/datomic
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/dmemREN
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/dmemWEN
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/flushed
@@ -28,6 +36,8 @@ add wave -noupdate /system_tb/DUT/CPU/DP/dpif/dmemstore
 add wave -noupdate /system_tb/DUT/CPU/DP/dpif/dmemaddr
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/opcode
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/funct
+add wave -noupdate /system_tb/DUT/CPU/DP/cuif/zero_flag
+add wave -noupdate /system_tb/DUT/CPU/DP/cuif/over_flag
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/lui
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/jr
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/RegW
@@ -37,11 +47,11 @@ add wave -noupdate /system_tb/DUT/CPU/DP/cuif/Dwen
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/Dren
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/Iren
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/halt
-add wave -noupdate /system_tb/DUT/CPU/DP/cuif/ALUsource
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/BNE
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/regDest
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/ExtSel
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/Mem
+add wave -noupdate /system_tb/DUT/CPU/DP/cuif/ALUsource
 add wave -noupdate /system_tb/DUT/CPU/DP/cuif/opcode_ALU
 add wave -noupdate /system_tb/DUT/CPU/DP/rfif/WEN
 add wave -noupdate /system_tb/DUT/CPU/DP/rfif/wsel
@@ -67,6 +77,8 @@ add wave -noupdate /system_tb/DUT/CPU/DP/ifid/npc_i
 add wave -noupdate /system_tb/DUT/CPU/DP/ifid/npc_o
 add wave -noupdate /system_tb/DUT/CPU/DP/ifid/iload_i
 add wave -noupdate /system_tb/DUT/CPU/DP/ifid/iload_o
+add wave -noupdate /system_tb/DUT/CPU/DP/ifid/dload_i
+add wave -noupdate /system_tb/DUT/CPU/DP/ifid/dload_o
 add wave -noupdate /system_tb/DUT/CPU/DP/ifid/iien
 add wave -noupdate /system_tb/DUT/CPU/DP/ifid/flush
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/rdat2_o
@@ -87,6 +99,9 @@ add wave -noupdate /system_tb/DUT/CPU/DP/idex/rt_i
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/rt_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/dload_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/dload_i
+add wave -noupdate /system_tb/DUT/CPU/DP/idex/shamt_i
+add wave -noupdate /system_tb/DUT/CPU/DP/idex/shamt_o
+add wave -noupdate /system_tb/DUT/CPU/DP/idex/enable
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/flush
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/lui_i
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/lui_o
@@ -102,8 +117,6 @@ add wave -noupdate /system_tb/DUT/CPU/DP/idex/DWen_i
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/DWen_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/DRen_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/DRen_i
-add wave -noupdate /system_tb/DUT/CPU/DP/idex/ALUsource_i
-add wave -noupdate /system_tb/DUT/CPU/DP/idex/ALUsource_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/BNE_i
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/BNE_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/halt_i
@@ -112,10 +125,14 @@ add wave -noupdate /system_tb/DUT/CPU/DP/idex/Mem_i
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/Mem_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/RegDest_i
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/RegDest_o
+add wave -noupdate /system_tb/DUT/CPU/DP/idex/ALUsource_i
+add wave -noupdate /system_tb/DUT/CPU/DP/idex/ALUsource_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/ALUop_i
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/ALUop_o
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/opcode_i
 add wave -noupdate /system_tb/DUT/CPU/DP/idex/opcode_o
+add wave -noupdate /system_tb/DUT/CPU/DP/idex/funct_i
+add wave -noupdate /system_tb/DUT/CPU/DP/idex/funct_o
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/rdat2_o
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/rdat2_i
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/rdat1_i
@@ -137,6 +154,7 @@ add wave -noupdate /system_tb/DUT/CPU/DP/exme/rt_o
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/dload_i
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/dload_o
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/enable
+add wave -noupdate /system_tb/DUT/CPU/DP/exme/flush
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/jr_i
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/jr_o
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/RegW_i
@@ -163,6 +181,8 @@ add wave -noupdate /system_tb/DUT/CPU/DP/exme/ALUop_i
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/ALUop_o
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/opcode_i
 add wave -noupdate /system_tb/DUT/CPU/DP/exme/opcode_o
+add wave -noupdate /system_tb/DUT/CPU/DP/exme/funct_i
+add wave -noupdate /system_tb/DUT/CPU/DP/exme/funct_o
 add wave -noupdate /system_tb/DUT/CPU/DP/mem/Addr_i
 add wave -noupdate /system_tb/DUT/CPU/DP/mem/Addr_o
 add wave -noupdate /system_tb/DUT/CPU/DP/mem/npc_o
@@ -189,7 +209,7 @@ add wave -noupdate /system_tb/DUT/CPU/DP/mem/RegDest_o
 add wave -noupdate /system_tb/DUT/CPU/DP/mem/opcode_i
 add wave -noupdate /system_tb/DUT/CPU/DP/mem/opcode_o
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {250241 ps} 0}
+WaveRestoreCursors {{Cursor 1} {256077 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
@@ -205,4 +225,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {199899 ps} {435109 ps}
+WaveRestoreZoom {0 ps} {336226 ps}

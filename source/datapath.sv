@@ -93,33 +93,40 @@ module datapath (
    
    always_comb begin
 
-      check = 1'b0;
-      hazard_enable = 1'b0;
+      
+      //hazard_enable = 1'b0;
       
       if (opcode_t'(ifid.iload_o[31:26]) == HALT) begin
 	 hazard_enable = 1'b0;
+	 check = 1'b0;
       end
       else if(idex.opcode_o != JAL && exme.opcode_o != JAL) begin
 	 if ((idex.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE && !check) || (exme.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE)) begin
 	    if((idex.rd_o == rtype.rs || idex.rd_o == rtype.rt) && (idex.rd_o != 0)) begin
 	       hazard_enable = 1'b1;
+	       check = 1'b0;
 	    end
 	    else if ((exme.rd_o ==  rtype.rs || exme.rd_o == rtype.rt) && (exme.rd_o)) begin
 	       hazard_enable =1'b1;
+	       check = 1'b0;
 	    end
 	    else begin
 	       hazard_enable = 1'b0;
+	       check = 1'b0;
 	    end
 	 end // if ((idex.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE))
 	 else if((idex.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE && !check) || (exme.opcode_o == RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE)) begin
 	    if((idex.rd_o == rtype.rt || idex.rd_o == rtype.rs) && (idex.rd_o != 0))begin
 	       hazard_enable = 1'b1;
+	       check = 1'b0;
 	    end
 	    else if ((exme.rd_o == rtype.rt || exme.rd_o == rtype.rs) && (exme.rd_o != 0)) begin
 	       hazard_enable = 1'b1;
+	       check = 1'b0;
 	    end
 	    else begin
 	       hazard_enable = 1'b0;
+	       check = 1'b0;
 	    end
 	 end
 	 else if((idex.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE) || (exme.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE)) begin
@@ -150,26 +157,36 @@ module datapath (
 	       hazard_enable = 1'b0;
 	    end
 	 end // if ((idex.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) == RTYPE))
-      end
+	 else begin
+	    check = 1'b0;
+	    hazard_enable = 1'b0;
+	 end // else: !if((idex.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE) || (exme.opcode_o != RTYPE && opcode_t'(ifid.iload_o[31:26]) != RTYPE))
+      end // if (idex.opcode_o != JAL && exme.opcode_o != JAL)
       else if (idex.opcode_o == JAL)begin
 	 if(rtype.rs == 31 || rtype.rt == 31) begin
 	    hazard_enable = 1'b1;
+	    check = 1'b0;
 	 end
 	 else begin
 	    hazard_enable = 1'b0;
+	    check = 1'b0;
 	 end
       end // if (idex.opcode_o == JAL)
       else if (exme.opcode_o == JAL) begin
 	 if(rtype.rs == 31 || rtype.rt == 31) begin
 	    hazard_enable = 1'b1;
+	    check = 1'b0;
 	 end
 	 else begin
 	    hazard_enable = 1'b0;
+	    check = 1'b0;
 	 end
       end // if (exme.opcode_o == JAL)
       else begin
 	 hazard_enable = 1'b0;
-      end // else: !if(exme.opcode_o == JAL)      
+	 check = 1'b0;
+      end // else: !if(exme.opcode_o == JAL)
+            
    end // always_comb
 	
 	 
