@@ -97,10 +97,10 @@ module datapath (
       fwrdA = 2'b00;
       fwrdB = 2'b00;
       
-      if (exme.RegW && (exme.target_o != 0) && (exme.target_o == idex.rs_o)) begin
+      if (exme.RegW_o && (exme.target_o != 0) && (exme.target_o == idex.rs_o)) begin
 	 fwrdA = 2'b10;
       end
-      if (exme.RegW && (exme.target_o != 0) && (exme.target_o == idex.rt_o)) begin
+      if (exme.RegW_o && (exme.target_o != 0) && (exme.target_o == idex.rt_o)) begin
 	 fwrdB = 2'b10;
       end
    end // always_comb
@@ -185,15 +185,15 @@ module datapath (
    
    
    always_comb begin
-      if(cuif.RegDest_o == 2'b10) begin
+      if(cuif.RegDest == 2'b10) begin
 	 RegDst_out = 31;
       end
-      else if (cuif.RegDest_o == 2'b01) begin
+      else if (cuif.RegDest == 2'b01) begin
 	 RegDst_out = mem.rt_o;//
 //rtype.rt;
 
       end
-      else if (cuif.RegDest_o == 2'b00) begin
+      else if (cuif.RegDest == 2'b00) begin
 	 RegDst_out = mem.rd_o;//
 //rtype.rs;
       end
