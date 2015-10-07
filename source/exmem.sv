@@ -34,6 +34,7 @@ module exmem
 	 exme.halt_o <= 0;
 	 exme.opcode_o <= RTYPE;
 	 exme.funct_o <= exme.funct_i;
+	 exme.ALUsource_o <= 0;
 	 exme.jump_o <= 0;
 	 exme.jr_o <= 0;
 	 exme.BNE_o <= 0;
@@ -70,6 +71,7 @@ module exmem
 	    exme.rs_o <= exme.rs_i;
 	    exme.rd_o <= exme.rd_i;
 	    exme.rt_o <= exme.rt_i;
+	    exme.ALUsource_o <= exme.ALUsource_i;
 	    exme.dload_o <= exme.dload_i;
 	    exme.target_o <= exme.target_i;
 	 end // if (exme.flush)
@@ -98,6 +100,8 @@ module exmem
 	    exme.rt_o <= 0;
 	    exme.dload_o <= 0;
 	    exme.target_o <= 0;
+	    exme.ALUsource_o <= 0;
+	    
 	 end
       end // else: !if(!nRST || exme.flush)
    end // always_ff @

@@ -31,8 +31,9 @@ module memwb
 	 mwif.rd_o <= 0;
 	 mwif.rt_o <= 0;
 	 mwif.dload_o <= 0;
-     mwif.target_o <= 0;
-	 
+	 mwif.target_o <= 0;
+	 mwif.ALUsource_o <= 0;
+	 	 
       end
       
       else begin
@@ -49,7 +50,8 @@ module memwb
 	    mwif.rd_o <= mwif.rd_i;
 	    mwif.rt_o <= mwif.rt_i;
 	    mwif.dload_o <= mwif.dload_i;
-        mwif.target_o <= mwif.target_i;
+            mwif.target_o <= mwif.target_i;
+	    mwif.ALUsource_o <= mwif.ALUsource_i;
 	 end
       end
    end
