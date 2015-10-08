@@ -229,9 +229,9 @@ add wave -noupdate /system_tb/DUT/CPU/DP/mem/ALUsource_i
 add wave -noupdate /system_tb/DUT/CPU/DP/mem/opcode_i
 add wave -noupdate /system_tb/DUT/CPU/DP/mem/opcode_o
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {1030744 ps} 0 Green default} {{Write #2 writes 0} {1065371 ps} 1} {{Write #3 writes 0} {1548427 ps} 1 default Orange} {{SW 2 in EX} {1031145 ps} 1} {{ADDU avail ex ALU} {943107 ps} 1} {{ADDU avail @ exme reg} {978259 ps} 1}
-quietly wave cursor active 4
-configure wave -namecolwidth 166
+WaveRestoreCursors {{Cursor 1} {570962 ps} 0}
+quietly wave cursor active 1
+configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -245,4 +245,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {634572 ps} {1410549 ps}
+WaveRestoreZoom {476386 ps} {644504 ps}
