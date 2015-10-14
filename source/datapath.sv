@@ -85,7 +85,7 @@ module datapath (
 	
 	 
    always_comb begin
-      if(cuif.jump) begin
+      if(cuif.jump || cuif.jr) begin
 	 next_PC = (rtype.opcode == RTYPE && rtype.funct == JR) ? rfif.rdat1 : ((itype.opcode == J || itype.opcode == JAL) ? {npc[31:28], jtype.addr, 2'b0} : npc);
       end
       else if (branch_out) begin
@@ -99,13 +99,21 @@ module datapath (
    
    
    assign ifid.iien = !hazard_enable;
-   assign ifid.flush = cuif.jump || branch_out;
+   assign ifid.flush = cuif.jump || branch_out || cuif.jr;
    assign ifid.npc_i = npc;
    assign ifid.dload_i = dpif.dmemload;
-   assign pcif.PCen = ((dpif.ihit && !dpif.dhit) || branch_out || cuif.jump) && !hazard_enable;
+   assign pcif.PCen = ((dpif.ihit && !dpif.dhit) || branch_out || cuif.jump || cuif.jr) && !hazard_enable;
    assign dpif.imemaddr = pcif.PCcurr;
    assign pcif.PCnext = next_PC;
-   assign dpif.halt = mem.halt_o;
+   //assign dpif.halt = mem.halt_o;
+   always_ff @(posedge CLK or negedge nRST) begin
+      if (!nRST) begin
+	 dpif.halt <= 1'b0;
+      end
+      else if( mem.halt_o == 1'b1) begin
+	 dpif.halt <= 1'b1;
+      end
+   end
    
    //////////////////////////////////////////////////////////////
    //DATAPATH
@@ -248,7 +256,7 @@ module datapath (
    assign mem.target_i = exme.target_o;
    
    
-      
+   
    
 
    always_comb begin
@@ -262,6 +270,8 @@ module datapath (
 	begin
 	   branch_out = 1'b0;
 	end
+      $display("opcode: %s \t\trd = %d \t\trt = %d \t\trs = %d", mem.opcode_o, mem.rd_o, mem.rt_o, mem.rs_o);
+      
    end
    
    always_comb begin
