@@ -82,19 +82,18 @@ module datapath (
 
    
 
-	
-	 
    always_comb begin
-      if(cuif.jump || cuif.jr) begin
+      if((cuif.jump || cuif.jr) && !(branch_out && (idex.opcode_o == BEQ || idex.opcode_o == BNE))) begin
 	 next_PC = (rtype.opcode == RTYPE && rtype.funct == JR) ? rfif.rdat1 : ((itype.opcode == J || itype.opcode == JAL) ? {npc[31:28], jtype.addr, 2'b0} : npc);
       end
       else if (branch_out) begin
-	 next_PC = {{14{idex.dload_o[15]}}, idex.dload_o[15:0], 2'b00} + idex.npc_o;
+	 next_PC = idex.braPC_o;
       end
       else begin
 	 next_PC = npc;
       end
    end // always_comb
+   
 
    
    
@@ -123,7 +122,7 @@ module datapath (
    ///////////////////////////////////////////////////////////////////
    
    //Instruction DECODE
-   
+   assign idex.braPC_i = {{14{ifid.iload_o[15]}}, ifid.iload_o[15:0], 2'b00} + ifid.npc_o;
    assign cuif.opcode = opcode_t'(ifid.iload_o[31:26]);
    assign cuif.funct = funct_t'(ifid.iload_o[5:0]);
    assign rfif.rsel1 = rtype.rs;
@@ -198,6 +197,7 @@ module datapath (
    assign alif.portA = Mux_lui;
    assign alif.portB = ALUSrc_out;
    assign alif.aluop = idex.ALUop_o;
+   assign exme.braPC_i = 0;
    assign exme.opcode_i = idex.opcode_o;
    assign exme.rdat1_i = idex.rdat1_o;
    assign exme.zero_i = alif.zero_flag;
@@ -270,7 +270,7 @@ module datapath (
 	begin
 	   branch_out = 1'b0;
 	end
-      $display("opcode: %s \t\trd = %d \t\trt = %d \t\trs = %d", mem.opcode_o, mem.rd_o, mem.rt_o, mem.rs_o);
+      //$display("opcode: %s \t\trd = %d \t\trt = %d \t\trs = %d", mem.opcode_o, mem.rd_o, mem.rt_o, mem.rs_o);
       
    end
    

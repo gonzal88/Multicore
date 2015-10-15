@@ -21,6 +21,7 @@ module idex
    always_ff @(posedge CLK, negedge nRST) begin
       if (!nRST) begin
 	 ide.npc_o <= 0;
+	 ide.braPC_o <= 0;
 	 ide.Jaddr_o <= 0;
 	 ide.rdat1_o <= 0;
 	 ide.rdat2_o <= 0;
@@ -51,6 +52,7 @@ module idex
       else begin
 	 if (!ide.flush) begin
 	    ide.npc_o <= ide.npc_i;
+	    ide.braPC_o <= ide.braPC_i;
 	    ide.Jaddr_o <= ide.Jaddr_i;
 	    ide.rdat1_o <= ide.rdat1_i;
 	    ide.rdat2_o <= ide.rdat2_i;
@@ -79,6 +81,7 @@ module idex
 	 end // if (!ide.flush)
 	 else begin
 	    ide.npc_o <= 0;
+	    ide.braPC_o <= 0;
 	    ide.Jaddr_o <= 0;
 	    ide.rdat1_o <= 0;
 	    ide.rdat2_o <= 0;
