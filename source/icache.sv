@@ -1,6 +1,7 @@
 /*
   Javier Gonzalez Souto && Cyrus Sutaria
-  gonzal88@purdue.edu 
+  gonzal88@purdue.edu
+  csutaria@purdue.edu 
 
   Icache, obtains instructions that are sent to the datapath
  */
@@ -10,43 +11,88 @@
 `include "cpu_types_pkg.vh"
 
 module icache (
-	       input logic CLK, nRST,
-	       datapath_cache_if icif,
-	       cache_control_if ccif
-   );
-   import cpu_types_pkg::*;
+    input logic CLK, nRST,
+    datapath_cache_if.icache dcif,
+    cache_control_if.icache ccif
+  );
+  import cpu_types_pkg::*;
 
-   typedef enum 	   logic {IDLE, FETCH} StateType;
-   StateType curr_State;
-   StateType next_State;
+  typedef enum logic {IDLE, UPDATE} ReadStateType;
+  ReadStateType curr_read_state;
+  ReadStateType next_read_state;
 
-   icachef_t icache_iaddr;
+  icachef_t icache_sel;
 
-   word_t[15:0] WordBlk, next_WordBlk;
-   logic [ITAG_W-1:0][15:0] Tag, nextTag;
-   int 	      i;
-   logic 	      next_valid;
+  word_t [15:0] block_data;
+  word_t next_block_data;
+  logic [ITAG_W-1:0][15:0] block_tag; //May have to switch these index dimension orderings. Pretty sure from SV spec its fine.
+  logic [ITAG_W-1:0] next_block_tag;
+  logic [15:0] block_valid;
+  logic next_block_valid;
 
-   assign icache_iaddr = icif.imemaddr;
-   assign icif.ihit = ((icache_iaddr.tag == Tag[icache_iaddr.idx]) && icif.imemREN && Valid[icache_iaddr.idx]) ? 1'b1 : 1'b0;
+  logic update_block, hit;
 
-   always_ff @(posedge CLK or negedge nRST) begin
-      if(!nRST) begin
-	 icif.imemload = 0;
-	 ccif.iREN = 1'b0;
-	 ccif.iaddr = 0;
-	 for (i=0, i<16, i++) begin
-	    Tag[i] = 0;
-	    WordBlk = 0;
-	 end
+  assign icache_sel = icachef_t'(dcif.imemaddr); //'
+  assign hit = ((icache_sel.tag == block_tag[icache_sel.idx]) && (block_valid[icache_sel.idx]) && (dcif.imemREN)) ? 1'b1 : 1'b0 ;
+
+  always_ff @(posedge CLK or negedge nRST) begin
+    if(!nRST) begin
+      block_data <= '{default:32'b0};
+      block_tag <= '{default:26'b0};
+      block_valid <= '{default:1'b0};
+      curr_read_state <= IDLE;
+    end else begin
+      block_data[icache_sel.idx] <= next_block_data;
+      block_tag[icache_sel.idx] <= next_block_tag;
+      block_valid[icache_sel.idx] <= next_block_valid;
+      curr_read_state <= next_read_state;
+    end
+  end // always_ff @
+
+  always_comb begin
+    update_block = 1'b0;
+
+    next_block_data = block_data[icache_sel.idx];
+    next_block_tag = block_tag[icache_sel.idx];
+    next_block_valid = block_valid[icache_sel.idx];
+
+    next_read_state = curr_read_state;
+
+    casez (curr_read_state)
+      IDLE: begin
+        update_block = 1'b0;
+
+        next_block_data = block_data[icache_sel.idx];
+        next_block_tag = block_tag[icache_sel.idx];
+        next_block_valid = block_valid[icache_sel.idx];
+
+        if (!hit) begin // cache miss!
+          next_read_state = UPDATE;
+        end else begin
+          next_read_state = IDLE;
+        end
       end
-   end // always_ff @
+
+      UPDATE: begin
+        update_block = 1'b1;
+
+        if (!ccif.iwait[0]) begin // no longer waiting for RAM
+          next_block_data = ccif.iload[0];
+          next_block_tag = icache_sel.tag;
+          next_block_valid = 1'b1;
+
+          next_read_state = IDLE;
+        end else begin // else keep waiting for the RAM
+          next_read_state = UPDATE;
+        end
+      end
+
+    endcase
+  end
+
+  assign dcif.imemload = block_data[icache_sel.idx];
+  assign dcif.ihit = hit;
+  assign ccif.iREN[0] = update_block;
+  assign ccif.iaddr[0] = (update_block) ? dcif.imemaddr : 32'b0 ;
+
 endmodule
-	    
-
-   
-
-   
-   
-   
-   
