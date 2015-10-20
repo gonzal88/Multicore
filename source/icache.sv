@@ -4,6 +4,7 @@
   csutaria@purdue.edu 
 
   Icache, obtains instructions that are sent to the datapath
+  Direct mapped, 1 word per block
  */
 
 `include "datapath_cache_if.vh"
@@ -11,10 +12,10 @@
 `include "cpu_types_pkg.vh"
 
 module icache (
-    input logic CLK, nRST,
-    datapath_cache_if.icache dcif,
-    cache_control_if.icache ccif
-  );
+  input logic CLK, nRST,
+  datapath_cache_if.icache dcif,
+  cache_control_if.icache ccif
+);
   import cpu_types_pkg::*;
 
   typedef enum logic {IDLE, UPDATE} ReadStateType;
@@ -23,11 +24,11 @@ module icache (
 
   icachef_t icache_sel;
 
-  word_t [15:0] block_data;
+  word_t block_data[15:0];
   word_t next_block_data;
-  logic [ITAG_W-1:0][15:0] block_tag; //May have to switch these index dimension orderings. Pretty sure from SV spec its fine.
+  logic [ITAG_W-1:0] block_tag[15:0]; //May have to switch these index dimension orderings. Pretty sure from SV spec its fine.
   logic [ITAG_W-1:0] next_block_tag;
-  logic [15:0] block_valid;
+  logic block_valid[15:0];
   logic next_block_valid;
 
   logic update_block, hit;
@@ -77,7 +78,7 @@ module icache (
         update_block = 1'b1;
 
         if (!ccif.iwait[0]) begin // no longer waiting for RAM
-          next_block_data = ccif.iload[0];
+          next_block_data = ccif.iload;
           next_block_tag = icache_sel.tag;
           next_block_valid = 1'b1;
 
@@ -92,7 +93,7 @@ module icache (
 
   assign dcif.imemload = block_data[icache_sel.idx];
   assign dcif.ihit = hit;
-  assign ccif.iREN[0] = update_block;
-  assign ccif.iaddr[0] = (update_block) ? dcif.imemaddr : 32'b0 ;
+  assign ccif.iREN = update_block;
+  assign ccif.iaddr = (update_block == 1'b1) ? dcif.imemaddr : 32'b0 ;
 
 endmodule
