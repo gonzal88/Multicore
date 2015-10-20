@@ -1,0 +1,24 @@
+/*
+  Javier Gonzalez Souto && Cyrus Sutaria
+  gonzal88@purdue.edu 
+
+  Icache, obtains instructions that are sent to the datapath
+ */
+
+`include "datapath_cache_if.vh"
+`include "cache_control_if.vh"
+`include "cpu_types_pkg.vh"
+
+module icache (
+	       input logic CLK, nRST,
+	       datapath_cache_if icif,
+	       cache_control_if ccif
+	       );
+   import cpu_types_pkg::*;
+
+   
+
+   
+   
+   
+   
