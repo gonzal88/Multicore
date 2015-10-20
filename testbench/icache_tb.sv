@@ -9,22 +9,32 @@
 `include "datapath_cache_if.vh"
 `include "cache_control_if.vh"
 `include "cpu_types_pkg.vh"
+`include "cpu_ram_if.vh"
 
 `timescale 1 ns /1 ns
 
 module icache_tb;
     import cpu_types_pkg::*;
 
-    parameter PERIOD = 10;
+    parameter PERIOD = 16;
     logic nRST;
     logic CLK = 0;
+    always #(PERIOD) CPUCLK++;
     always #(PERIOD/2) CLK++;
 
     datapath_cache_if dcif ();
     cache_control_if ccif ();
+    cpu_ram_if ramif ();
 
-    test PROG (CLK, nRST, dcif, ccif);
-    icache DUT(CLK, nRST, dcif, ccif);
+    test PROG (CLK, nRST, dcif, ccif, ramif);
+    icache DUT(CPUCLK, nRST, dcif, ccif);
+    ram RAM (CLK, nRST, ramif);
+
+    assign ramif.ramREN = ccif.iREN;
+    assign ramif.ramWEN = 1'b0;
+    assign ramif.ramaddr = ccif.iaddr;
+    assign ramif.ramstore = 0;
+    assign ccif.ramload = ramif.ramload;
 
 endmodule
 
@@ -32,10 +42,11 @@ program test (
     input logic CLK,
     output logic nRST,
     datapath_cache_if.dp dcif,
-    cache_control_if.cc ccif
+    cache_control_if.cc ccif,
+    cpu_ram_if.ram ramif
 );
     import cpu_types_pkg::*;
-    parameter PERIOD = 10;
+    parameter PERIOD = 16;
     icachef_t icache_sel;
 
 
@@ -52,6 +63,7 @@ program test (
         dcif.imemaddr = 32'h0000;//'
         dcif.imemREN = 1;
         #(PERIOD);
+
         //Test Instr Seq        
         for (i = 0; i < 32; i++) begin
             #(PERIOD*2);
@@ -59,10 +71,10 @@ program test (
             #(PERIOD*2);
             if(dcif.ihit == 1 && i>= 15) begin
                 dcif.imemaddr = 32'h0000;
-                //$display("hit\n");
+                $display("hit\n");
             end else begin
                 dcif.imemaddr = dcif.imemaddr;
-                //$display("hit\n");
+                $display("hit\n");
             end
         end  
         dump_memory();

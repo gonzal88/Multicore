@@ -20,11 +20,12 @@ module dcache (
 );
   import cpu_types_pkg::*;
 
-  typedef enum logic [3:0] {IDLE, WRITE, WRITE1, WRITE2, READ, READ1, READ2, LAST_WRITE} StateType;
+  typedef enum logic [3:0] {IDLE, WRITE, WRITE1, WRITE2, READ, UPDATE1, UPDATE2, LAST_WRITE} StateType;
   StateType curr_state;
   StateType next_state;
 
   dcachef_t dcache_sel;
+  logic r_choose_block1, r_choose_block2;
   word_t block1_data1 [7:0], block1_data2 [7:0], block2_data1 [7:0], block2_data2 [7:0];
   word_t next_block1_data1, next_block1_data2, next_block2_data1, next_block2_data2;
   logic [DTAG_W-1:0] block1_tag [7:0];
@@ -47,7 +48,10 @@ module dcache (
   word_t hit_counter, hit_counter_next;
 
   assign dcache_sel = dcachef_t'(dcif.dmemaddr); //'
-  assign hit = (((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid) || ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid)) ? 1'b1 : 1'b0 ;
+  assign r_choose_block1 = ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid);
+  assign r_choose_block2 = ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid);
+  
+  assign hit = (r_choose_block1 || r_choose_block2) ? 1'b1 : 1'b0 ;
   assign dcif.dhit = hit;
 
   always_ff @(posedge CLK or negedge nRST) begin
@@ -85,6 +89,7 @@ module dcache (
   end // always_ff @
 
   always_comb begin
+    hit_counter_next = hit_counter;
     casez (curr_state)
       IDLE: begin
         if (dcif.dmemREN) begin
@@ -100,30 +105,31 @@ module dcache (
       READ: begin
         if(hit) begin
           next_state = IDLE;
+          hit_counter_next = hit_counter + 1;
         end
         else if (!dhit && ((block1_dirty[dcache_sel.idx] && !block1_recent[dcache_sel.idx]) || (block2_dirty[dcache_sel.idx] && !block2_recent[dcache_sel.idx])) begin
           next_state = WRITE1;
         end
         else if (!dhit) begin      
-          next_state = READ1;
+          next_state = UPDATE1;
         end else begin
           next_state = READ;
         end
       end
 
-      READ1: begin
+      UPDATE1: begin
         if (!ccif.dwait) begin
-          next_state = READ2;
+          next_state = UPDATE2;
         end else begin
-          next_state = READ1;
+          next_state = UPDATE1;
         end
       end
 
-      READ2: begin
+      UPDATE2: begin
         if (!ccif.dwait) begin
           next_state = IDLE;
         end else begin
-          next_state = READ2;
+          next_state = UPDATE2;
         end
       end
 
@@ -155,7 +161,7 @@ module dcache (
           next_state = LAST_WRITE;
         end
         else if(!ccif.dwait && dcif.dmemREN) begin
-          next_state = READ1;
+          next_state = UPDATE1;
         end
         else begin
           next_state = WRITE2;
@@ -173,7 +179,40 @@ module dcache (
   end
 
   always_comb begin
-    
+    ccif.dREN = 0;
+    ccif.dWEN = 0;
+    ccif.dstore = 0;
+    ccif.dmemload = 0;
+    ccif.daddr = 0;
+    casez(curr_state)
+      IDLE: begin
+        ccif.dREN = 0;
+        ccif.dWEN = 0;
+        ccif.dstore = 0;
+        ccif.dmemload = 0;
+        ccif.daddr = 0;
+      end
+      READ: begin
+        if (hit) begin
+          if (dcache_sel.tag == block1_tag[dcache_sel.idx] && dcache_sel.blkoff == 0) begin
+            dcif.dmemload = block1_data1[dcache_sel.idx];
+          end
+          else if (dcache_sel.tag == block1_tag[dcache_sel.idx] && dcache_sel.blkoff == 1) begin
+            dcif.dmemload = block1_data2[dcache_sel.idx];
+          end
+          else if (dcache_sel.tag == block2_tag[dcache_sel.idx] && dcache_sel.blkoff == 0) begin
+            dcif.dmemload = block2_data1[dcache_sel.idx];
+          end
+          else begin
+            dcif.dmemload = block2_data2[dcache_sel.idx];
+          end
+      end
+      UPDATE1: begin
+        ccif.dREN = 1;
+        ccif.dWEN = 0;
+        ccif.daddr = dcif.dmemaddr;
+      end
+    endcase
   end
 
 endmodule
