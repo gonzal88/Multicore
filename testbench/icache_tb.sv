@@ -105,7 +105,7 @@ program test (
             $fdisplay(file_open, "%s", ihex.toupper());
             //$display("n = %h, ccif.daddr[0] = %h val = %h total = %h\n\n", n, ccif.daddr[0], val, total);
         end
-        if(cpu) begin
+        if(file_open) begin
             ccif.dREN[0] = 0;
             $fdisplay(file_open, ":00000001FF");
             $fclose(file_open);
