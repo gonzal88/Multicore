@@ -34,7 +34,7 @@ module icache (
   logic update_block, hit;
 
   assign icache_sel = icachef_t'(dcif.imemaddr); //'
-  assign hit = ((icache_sel.tag == block_tag[icache_sel.idx]) && (block_valid[icache_sel.idx]) && (dcif.imemREN)) ? 1'b1 : 1'b0 ;
+  assign hit = ((icache_sel.tag == block_tag[icache_sel.idx]) && (block_valid[icache_sel.idx]) && (dcif.imemREN)) ? ~ccif.iwait : 1'b0 ;
 
   always_ff @(posedge CLK or negedge nRST) begin
     if(!nRST) begin

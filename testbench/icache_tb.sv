@@ -16,7 +16,7 @@
 module icache_tb;
     import cpu_types_pkg::*;
    
-    parameter PERIOD = 16;
+    parameter PERIOD = 20;
     logic nRST;
     logic CLK = 0;
     logic  CPUCLK = 0;
@@ -27,18 +27,20 @@ module icache_tb;
     datapath_cache_if dcif ();
     cache_control_if ccif ();
     cpu_ram_if ramif ();
-    //memory_control MEM (CLK, nRST, ccif);
+    memory_control MEM (CLK, nRST, ccif);//
    
 
     test PROG (CLK, nRST, dcif, ccif, ramif);
     icache DUT(CPUCLK, nRST, dcif, ccif);
     ram RAM (CLK, nRST, ramif);
 
-    assign ramif.ramREN = ccif.iREN;
-    assign ramif.ramWEN = 1'b0;
-    assign ramif.ramaddr = ccif.iaddr;
-    assign ramif.ramstore = 0;
+    assign ramif.ramREN = ccif.ramREN;//ccif.iREN
+    assign ramif.ramWEN = ccif.ramWEN;//1'b0
+    assign ramif.ramaddr = ccif.ramaddr;//ccif.iaddr
+    assign ramif.ramstore = ccif.ramstore;//0
     assign ccif.ramload = ramif.ramload;
+    assign ccif.ramstate = ramif.ramstate;
+   
     
 
 endmodule
@@ -77,7 +79,8 @@ program test (
             if(dcif.ihit == 1 && i>= 15) begin
                 dcif.imemaddr = 32'h0000;
                 $display("hit\n");
-            end else begin
+            end 
+	    else if (dcif.ihit) begin
                 dcif.imemaddr = dcif.imemaddr;
                 $display("hit\n");
             end
