@@ -15,16 +15,20 @@
 
 module icache_tb;
     import cpu_types_pkg::*;
-
+   
     parameter PERIOD = 16;
     logic nRST;
     logic CLK = 0;
+    logic  CPUCLK = 0;
+   
     always #(PERIOD) CPUCLK++;
     always #(PERIOD/2) CLK++;
 
     datapath_cache_if dcif ();
     cache_control_if ccif ();
     cpu_ram_if ramif ();
+    //memory_control MEM (CLK, nRST, ccif);
+   
 
     test PROG (CLK, nRST, dcif, ccif, ramif);
     icache DUT(CPUCLK, nRST, dcif, ccif);
@@ -35,6 +39,7 @@ module icache_tb;
     assign ramif.ramaddr = ccif.iaddr;
     assign ramif.ramstore = 0;
     assign ccif.ramload = ramif.ramload;
+    
 
 endmodule
 
@@ -117,7 +122,7 @@ program test (
             $fdisplay(file_open, "%s", ihex.toupper());
             //$display("n = %h, ccif.daddr[0] = %h val = %h total = %h\n\n", n, ccif.daddr[0], val, total);
         end
-        if(cpu) begin
+        if(file_open) begin
             ccif.dREN[0] = 0;
             $fdisplay(file_open, ":00000001FF");
             $fclose(file_open);
