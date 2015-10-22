@@ -78,7 +78,7 @@ module icache (
         update_block = 1'b1;
 
         if (!ccif.iwait[0]) begin // no longer waiting for RAM
-          next_block_data = ccif.iload;
+          next_block_data = ccif.iload[0];
           next_block_tag = icache_sel.tag;
           next_block_valid = 1'b1;
 
@@ -93,7 +93,7 @@ module icache (
 
   assign dcif.imemload = block_data[icache_sel.idx];
   assign dcif.ihit = hit;
-  assign ccif.iREN = update_block;
-  assign ccif.iaddr = (update_block == 1'b1) ? dcif.imemaddr : 32'b0 ;
+  assign ccif.iREN[0] = update_block;
+  assign ccif.iaddr[0] = (update_block == 1'b1) ? dcif.imemaddr : 32'b0 ;
 
 endmodule
