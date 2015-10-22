@@ -150,7 +150,7 @@ module datapath (
    assign idex.Mem_i = cuif.Mem;
    assign idex.BNE_i = cuif.BNE;
    assign idex.opcode_i = opcode_t'(ifid.iload_o[31:26]);
-   assign idex.rdat2_i = rfif.rdat2;
+   //assign idex.rdat2_i = rfif.rdat2;
    assign idex.rdat1_i = rfif.rdat1;
    assign idex.rs_i = rtype.rs;
    assign idex.rd_i = rtype.rd;
@@ -220,7 +220,7 @@ module datapath (
    assign exme.ALUsource_i = exme.ALUsource_o;
    assign exme.rt_i = idex.rt_o;
    assign exme.dload_i = idex.dload_o;
-   assign exme.enable = 1'b1;
+   assign exme.enable = exme.opcode_o == LW || exme.opcode_o == SW ? dpif.dhit : 1'b1;//dpif.ihit || dpif.dhit;
    assign exme.target_i = idex.target_o;
    
 
@@ -252,7 +252,7 @@ module datapath (
    assign dpif.dmemWEN = exme.DWen_o;
    assign mem.dload_i = dpif.dmemload;
    assign mem.ALUsource_i = exme.ALUsource_o;
-   assign mem.enable = 1'b1;
+   assign mem.enable = exme.opcode_o == LW || exme.opcode_o == SW ? dpif.dhit : 1'b1;
    assign mem.target_i = exme.target_o;
    
    
@@ -312,90 +312,92 @@ module datapath (
       memfwB = 0;
       wbfwA = 0;
       wbfwB = 0;
-      hazard_enable = idex.DRen_o && (idex.rt_o == rtype.rs || idex.rt_o == rtype.rt);
+      hazard_enable = idex.DRen_o  && (idex.rt_o == rtype.rs || idex.rt_o == rtype.rt);
       
-      //RTYPE-RTYPE
-      if(idex.opcode_o == HALT || exme.opcode_o == HALT || mem.opcode_o == HALT) begin
-	 memfwA = 0;
-	 memfwB = 0;
-	 wbfwA = 0;
-	 wbfwB = 0;
-      end
-      else if(exme.opcode_o != JAL || mem.opcode_o != JAL) begin
-	 
-	 if(exme.rd_o == idex.rs_o && (exme.rd_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o == RTYPE)) begin
-	    memfwA = 1;
+      
+      if(exme.enable) begin
+	 if(idex.opcode_o == HALT || exme.opcode_o == HALT || mem.opcode_o == HALT) begin
+	    memfwA = 0;
+	    memfwB = 0;
+	    wbfwA = 0;
+	    wbfwB = 0;
 	 end
-	 if(exme.rd_o == idex.rt_o && (exme.rd_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o == RTYPE)) begin
-	    memfwB = 1;
+	 else if(exme.opcode_o != JAL || mem.opcode_o != JAL) begin
+	    //RTYPE-RTYPE
+	    if(exme.rd_o == idex.rs_o && (exme.rd_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o == RTYPE)) begin
+	       memfwA = 1;
+	    end
+	    if(exme.rd_o == idex.rt_o && (exme.rd_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o == RTYPE)) begin
+	       memfwB = 1;
+	    end
+	    if(mem.rd_o == idex.rs_o && (mem.rd_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o == RTYPE)) begin
+	       wbfwA = 1;
+	    end
+	    if(mem.rd_o == idex.rt_o && (mem.rd_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o == RTYPE)) begin
+	       wbfwB = 1;
+	    end
+	    
+	    
+	    //RTYPE-ITYPE
+	    if(exme.rd_o == idex.rs_o && (exme.rd_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o == RTYPE)) begin
+	       memfwA = 1;
+	    end
+	    if(exme.rd_o == idex.rt_o && (exme.rd_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o == RTYPE)) begin
+	       memfwB = 1;
+	    end
+	    if(mem.rd_o == idex.rs_o && (mem.rd_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o == RTYPE)) begin
+	       wbfwA = 1;
+	    end
+	    if(mem.rd_o == idex.rt_o && (mem.rd_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o == RTYPE)) begin
+	       wbfwB = 1;
+	    end
+	    
+	    //ITYPE-RTYPE
+	    if(exme.rt_o == idex.rs_o && (exme.rt_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o != RTYPE)) begin
+	       memfwA = 1;
+	    end
+	    if(exme.rt_o == idex.rt_o && (exme.rt_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o != RTYPE)) begin
+	       memfwB = 1;
+	    end
+	    if(mem.rt_o == idex.rs_o && (mem.rt_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o != RTYPE)) begin
+	       wbfwA = 1;
+	    end
+	    if(mem.rt_o == idex.rt_o && (mem.rt_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o != RTYPE)) begin
+	       wbfwB = 1;
+	    end
+	    
+	    //ITYPE-ITYPE
+	    if(exme.rt_o == idex.rs_o && (exme.rt_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o != RTYPE)) begin
+	       memfwA = 1;
+	    end
+	    if(exme.rt_o == idex.rt_o && (exme.rt_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o != RTYPE)) begin
+	       memfwB = 1;
+	    end
+	    if(mem.rt_o == idex.rs_o && (mem.rt_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o != RTYPE)) begin
+	       wbfwA = 1;
+	    end
+	    if(mem.rt_o == idex.rt_o && (mem.rt_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o != RTYPE)) begin
+	       wbfwB = 1;
+	    end
+	 end // if (exme.opcode_o != JAL || mem.opcode_o != JAL)
+	 else if (exme.opcode_o == JAL) begin
+	    if(idex.rs_o == 31) begin
+	       memfwA = 1;
+	    end
+	    else if(idex.rt_o == 31 && idex.opcode_o == RTYPE) begin
+	       memfwB = 1;
+	    end
 	 end
-	 if(mem.rd_o == idex.rs_o && (mem.rd_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o == RTYPE)) begin
-	    wbfwA = 1;
-	 end
-	 if(mem.rd_o == idex.rt_o && (mem.rd_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o == RTYPE)) begin
-	    wbfwB = 1;
-	 end
-	 
-	 
-	 //RTYPE-ITYPE
-	 if(exme.rd_o == idex.rs_o && (exme.rd_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o == RTYPE)) begin
-	    memfwA = 1;
-	 end
-	 if(exme.rd_o == idex.rt_o && (exme.rd_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o == RTYPE)) begin
-	    memfwB = 1;
-	 end
-	 if(mem.rd_o == idex.rs_o && (mem.rd_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o == RTYPE)) begin
-	    wbfwA = 1;
-	 end
-	 if(mem.rd_o == idex.rt_o && (mem.rd_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o == RTYPE)) begin
-	    wbfwB = 1;
-	 end
-	 
-	 //ITYPE-RTYPE
-	 if(exme.rt_o == idex.rs_o && (exme.rt_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o != RTYPE)) begin
-	    memfwA = 1;
-	 end
-	 if(exme.rt_o == idex.rt_o && (exme.rt_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o != RTYPE)) begin
-	    memfwB = 1;
-	 end
-	 if(mem.rt_o == idex.rs_o && (mem.rt_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o != RTYPE)) begin
-	    wbfwA = 1;
-	 end
-	 if(mem.rt_o == idex.rt_o && (mem.rt_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o != RTYPE)) begin
-	    wbfwB = 1;
-	 end
-	 
-	 //ITYPE-ITYPE
-	 if(exme.rt_o == idex.rs_o && (exme.rt_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o != RTYPE)) begin
-	    memfwA = 1;
-	 end
-	 if(exme.rt_o == idex.rt_o && (exme.rt_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o != RTYPE)) begin
-	    memfwB = 1;
-	 end
-	 if(mem.rt_o == idex.rs_o && (mem.rt_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o != RTYPE)) begin
-	    wbfwA = 1;
-	 end
-	 if(mem.rt_o == idex.rt_o && (mem.rt_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o != RTYPE)) begin
-	    wbfwB = 1;
-	 end
-      end // if (exme.opcode_o != JAL || mem.opcode_o != JAL)
-      else if (exme.opcode_o == JAL) begin
-	 if(idex.rs_o == 31) begin
-	    memfwA = 1;
-	 end
-	 else if(idex.rt_o == 31 && idex.opcode_o == RTYPE) begin
-	    memfwB = 1;
-	 end
-      end
-      else begin
-	 if(idex.rs_o == 31) begin
-	    wbfwA = 1;
-	 end
-	 else if(idex.rt_o == 31 && idex.opcode_o == RTYPE) begin
-	    wbfwB = 1;
-	 end
-      end // else: !if(idex.rt_o == 31 && idex.opcode_o == RTYPE)
-   
+	 else begin
+	    if(idex.rs_o == 31) begin
+	       wbfwA = 1;
+	    end
+	    else if(idex.rt_o == 31 && idex.opcode_o == RTYPE) begin
+	       wbfwB = 1;
+	    end
+	 end // else: !if(idex.rt_o == 31 && idex.opcode_o == RTYPE)
+      end // if (exme.enable)
+      
 	 
 	   
 	    
@@ -406,9 +408,9 @@ module datapath (
    always_comb begin
       dpif.dmemstore = exme.rdat2_o;
       exme.rdat2_i = idex.rdat2_o;
-      
+      idex.rdat2_i = rfif.rdat2;
       if(memfwB) begin
-	 exme.rdat2_i = exme.alu_out_o;
+	 /*exme.rdat2_i = exme.alu_out_o;
 	 if(idex.ALUsource_o == 1) begin
 	    ALUSrc_out = idex.extout_o;
 	 end
@@ -419,7 +421,38 @@ module datapath (
 	 end
 	 else begin
 	    ALUSrc_out = idex.shamt_o;
-	 end
+	 end*/
+
+	 if(exme.opcode_o == LW) begin
+	    idex.rdat2_i = exme.dload_o;
+	    if(idex.ALUsource_o == 1) begin
+	       ALUSrc_out = idex.extout_o;
+	    end
+	    else if(idex.ALUsource_o == 0) begin
+	       ALUSrc_out = dpif.dmemload;//exme.dload_o;
+	       idex.rdat2_i = dpif.dmemload;//exme.dload_o;
+	    end
+	    else begin
+	       ALUSrc_out = idex.shamt_o;
+	    end
+	 end // if (mem.opcode_o == LW)
+	 else begin
+	    idex.rdat2_i = exme.alu_out_o;
+	    if(idex.ALUsource_o == 1) begin
+	       ALUSrc_out = idex.extout_o;
+	    end
+	    else if(idex.ALUsource_o == 0) begin
+	       ALUSrc_out = exme.alu_out_o;
+	       idex.rdat2_i = exme.alu_out_o;
+	    end
+	    else begin
+	       ALUSrc_out = idex.shamt_o;
+	    end
+	 end // else: !if(mem.opcode_o == LW)
+
+
+
+	 
       end // if (memfwB)
       else if (wbfwB) begin
 	 if(mem.opcode_o == LW) begin
