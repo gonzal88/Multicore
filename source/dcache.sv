@@ -376,7 +376,11 @@ module dcache (
 
             FLUSHB1W1: begin
                 ccif.dREN = 0;
-                ccif.dWEN = 1;
+                if (block1_valid[dcache_sel.idx]) begin
+                    ccif.dWEN = 1;
+                end else begin
+                    ccif.dWEN = 0;
+                end
                 ccif.dstore = block1_data1[flush_idx_count];
                 ccif.daddr = {block1_tag[flush_idx_count], flush_idx_count, 1'b0, 1'b00};
 
@@ -400,7 +404,11 @@ module dcache (
 
             FLUSHB1W2: begin
                 ccif.dREN = 0;
-                ccif.dWEN = 1;
+                if (block1_valid[dcache_sel.idx]) begin
+                    ccif.dWEN = 1;
+                end else begin
+                    ccif.dWEN = 0;
+                end
                 ccif.dstore = block1_data2[flush_idx_count];
                 ccif.daddr = {block1_tag[flush_idx_count], flush_idx_count, 1'b1, 1'b00};
 
@@ -412,18 +420,24 @@ module dcache (
                 next_block1_tag = block1_tag[dcache_sel.idx];
                 next_block2_tag = block2_tag[dcache_sel.idx];
 
-                next_block1_valid = block1_valid[dcache_sel.idx];
+                next_block1_valid = 0;
                 next_block2_valid = block2_valid[dcache_sel.idx];
 
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
                 next_recent_block = recent_block[dcache_sel.idx];
+
+                flush_idx_count_next = flush_idx_count + 1;
             end
 
             FLUSHB2W1: begin
                 ccif.dREN = 0;
-                ccif.dWEN = 1;
+                if (block2_valid[dcache_sel.idx]) begin
+                    ccif.dWEN = 1;
+                end else begin
+                    ccif.dWEN = 0;
+                end
                 ccif.dstore = block2_data1[flush_idx_count];
                 ccif.daddr = {block2_tag[flush_idx_count], flush_idx_count, 1'b0, 1'b00};
 
@@ -446,7 +460,11 @@ module dcache (
 
             FLUSHB2W2: begin
                 ccif.dREN = 0;
-                ccif.dWEN = 1;
+                if (block2_valid[dcache_sel.idx]) begin
+                    ccif.dWEN = 1;
+                end else begin
+                    ccif.dWEN = 0;
+                end
                 ccif.dstore = block2_data2[flush_idx_count];
                 ccif.daddr = {block2_tag[flush_idx_count], flush_idx_count, 1'b1, 1'b00};
 
@@ -459,12 +477,14 @@ module dcache (
                 next_block2_tag = block2_tag[dcache_sel.idx];
 
                 next_block1_valid = block1_valid[dcache_sel.idx];
-                next_block2_valid = block2_valid[dcache_sel.idx];
+                next_block2_valid = 0;
 
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
                 next_recent_block = recent_block[dcache_sel.idx];
+
+                flush_idx_count_next = flush_idx_count + 1;
             end
 
             FLUSHW_HIT: begin
