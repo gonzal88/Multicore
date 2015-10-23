@@ -20,7 +20,7 @@ module dcache (
 );
     import cpu_types_pkg::*;
 
-    typedef enum logic [3:0] {IDLE, WB1, WB2, UPDATE1, UPDATE2, FLUSHW1, FLUSHW2, FLUSHW_HIT} StateType;
+    typedef enum logic [3:0] {IDLE, WB1, WB2, UPDATE1, UPDATE2, FLUSHB1W1, FLUSHB1W2, FLUSHB2W1, FLUSHB2W2, FLUSHW_HIT} StateType;
     StateType curr_state;
     StateType next_state;
 
@@ -45,8 +45,8 @@ module dcache (
 
     logic hit;
     word_t hit_counter, hit_counter_next;
-    logic [3:0] flush_count;
-    logic flush_count_next;
+    logic [2:0] flush_idx_count;
+    logic flush_idx_count_next;
 
     assign dcache_sel = dcachef_t'(dcif.dmemaddr); //'
     
@@ -68,7 +68,7 @@ module dcache (
             block2_dirty <= '{default:1'b0};
             recent_block <= '{default:1'b1};
             hit_counter <= 32'b0;
-            flush_count <= 4'd8;
+            flush_idx_count <= 3'd0;
         end else begin
             curr_state <= next_state;
             block1_data1[dcache_sel.idx] <= next_block1_data1;
@@ -83,7 +83,7 @@ module dcache (
             block2_dirty[dcache_sel.idx] <= next_block2_dirty;
             recent_block[dcache_sel.idx] <= next_recent_block;
             hit_counter <= hit_counter_next;
-            flush_count <= flush_count_next;
+            flush_idx_count <= flush_idx_count_next;
         end
     end // always_ff @
 
@@ -98,7 +98,7 @@ module dcache (
                     next_state = WB1;
                 end else if (dcif.halt) begin
                     hit_counter_next = hit_counter;
-                    next_state = FLUSHW1;
+                    next_state = FLUSHB1W1;
                 end else begin
                     if (hit && (dcif.dmemWEN || dcif.dmemREN) begin
                         hit_counter_next = hit_counter + 1; // how to increment only on an initial hit? we can always increment in idle but decrement if we miss. but then the count maybe inflated if the data request doesn't change
@@ -145,24 +145,42 @@ module dcache (
                 end
             end
 
-            FLUSHW1: begin
+            FLUSHB1W1: begin
                 hit_counter_next = hit_counter;
                 if (!ccif.dwait[0]) begin
-                    next_state = FLUSHW2;
+                    next_state = FLUSHB1W2;
                 end else begin
-                    next_state = FLUSHW1;
+                    next_state = FLUSHB1W1;
                 end
             end
 
-            FLUSHW2: begin
+            FLUSHB1W2: begin
                 hit_counter_next = hit_counter;
-                if ((flush_count != 0) && (!ccif.dwait[0])) begin 
-                    next_state = FLUSHW1;
-                end else if ((flush_count == 0) && (!ccif.dwait[0])) begin //flush_count or flush_count_next?
+                if (!ccif.dwait[0]) begin
+                    next_state = FLUSHB2W1;
+                end else begin
+                    next_state = FLUSHB1W2;
+                end
+            end
+
+            FLUSHB2W1: begin
+                hit_counter_next = hit_counter;
+                if (!ccif.dwait[0]) begin
+                    next_state = FLUSHB2W2;
+                end else begin
+                    next_state = FLUSHB2W1;
+                end
+            end
+
+            FLUSHB2W2: begin
+                hit_counter_next = hit_counter;
+                if ((flush_idx_count != 3'd7) && (!ccif.dwait[0])) begin 
+                    next_state = FLUSHB1W1;
+                end else if ((flush_idx_count == 3'd7) && (!ccif.dwait[0])) begin //flush_count or flush_count_next?
                     next_state = FLUSHW_HIT;
                 end else begin
-                    next_state = FLUSHW2;
-                end
+                    next_state = FLUSHB2W2;
+                e
             end
 
             FLUSHW_HIT: begin
@@ -177,13 +195,35 @@ module dcache (
     end
 
     always_comb begin
+        ccif.dREN = 0;
+        ccif.dWEN = 0;
+        ccif.dstore = 0;
+        ccif.daddr = 0;
+
+        next_block1_data1 = block1_data1[dcache_sel.idx];
+        next_block1_data2 = block1_data2[dcache_set.idx];
+        next_block2_data1 = block2_data1[dcache_sel.idx];
+        next_block2_data2 = block2_data2[dcache_sel.idx];
+
+        next_block1_tag = block1_tag[dcache_sel.idx];
+        next_block2_tag = block2_tag[dcache_sel.idx];
+
+        next_block1_valid = block1_valid[dcache_sel.idx];
+        next_block2_valid = block2_valid[dcache_sel.idx];
+
+        next_block1_dirty = block1_dirty[dcache_sel.idx];
+        next_block2_dirty = block2_dirty[dcache_sel.idx];
+
+        next_recent_block = recent_block[dcache_sel.idx];
+
+        flush_idx_count_next = flush_idx_count;
+
         casez(curr_state)
             IDLE: begin
                 ccif.dREN = 0;
                 ccif.dWEN = 0;
                 ccif.dstore = 0;
                 ccif.daddr = 0;
-                dcif.flushed = 0;
 
                 next_block1_data1 = block1_data1[dcache_sel.idx];
                 next_block1_data2 = block1_data2[dcache_set.idx];
@@ -201,7 +241,7 @@ module dcache (
 
                 next_recent_block = recent_block[dcache_sel.idx]; // value 0 means block 1 used most recently, value 1 means block 2 used most recently
 
-                flush_count_next = flush_count;
+                flush_idx_count_next = flush_idx_count;
             end
 
             UPDATE1: begin
@@ -209,7 +249,6 @@ module dcache (
                 ccif.dWEN = 0;
                 ccif.dstore = 0;
                 ccif.daddr = {dcif.dmemaddr[WORD_W-1:3], 1'b0, 1'b00}; // Could possibly also just leave byte offset as 00
-                dcif.flushed = 0;
 
                 if (recent_block[dcache_sel.idx] == 1) begin // if block 2 used most recently, evict block 1
                     next_block1_data1 = ccif.dload[0];
@@ -239,8 +278,6 @@ module dcache (
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
                 next_recent_block = recent_block[dcache_sel.idx];
-
-                flush_count_next = flush_count;
             end
 
             UPDATE2: begin
@@ -248,7 +285,6 @@ module dcache (
                 ccif.dWEN = 0;
                 ccif.dstore = 0;
                 ccif.daddr = {dcif.dmemaddr[WORD_W-1:3], 1'b1, 1'b00}; // Could possibly also just leave byte offset as 00
-                dcif.flushed = 0;
 
                 if (recent_block[dcache_sel.idx] == 1) begin // if block 2 used most recently, evict block 1
                     next_block1_data1 = block1_data1[dcache_set.idx];
@@ -278,14 +314,11 @@ module dcache (
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
                 next_recent_block = recent_block[dcache_sel.idx];
-
-                flush_count_next = flush_count;
             end
 
             WB1: begin
                 ccif.dREN = 0;
                 ccif.dWEN = 1;
-                dcif.flushed = 0;
 
                 next_block1_data1 = block1_data1[dcache_sel.idx];
                 next_block1_data2 = block1_data2[dcache_set.idx];
@@ -301,24 +334,19 @@ module dcache (
                 if (recent_block[dcache_sel.idx] == 1) begin // if block 2 used most recently, wb block 1 WORD 1
                     ccif.dstore = block1_data1[dcache_sel.idx]; //curr block 1 WORD 1
                     ccif.daddr = {block1_tag[dcache_sel.idx], dcache_sel.idx, 1'b0, 1'b00}; //curr index block 1 tag + dcache_sel.idx + 1'b0 + byteoffset
-                    next_block1_dirty = block1_dirty[dcache_sel.idx];
-                    next_block2_dirty = block2_dirty[dcache_sel.idx];
                 end else begin // else if block 1 used most recently, wb block 2 WORD 1
                     ccif.dstore = block2_data1[dcache_sel.idx]; //curr block 2 WORD1
                     ccif.daddr = {block2_tag[dcache_sel.idx], dcache_sel.idx, 1'b0, 1'b00}; //curr index block 2 tag + dcache_sel.idx + 1'b0 + byteoffset
-                    next_block1_dirty = block1_dirty[dcache_sel.idx];
-                    next_block2_dirty = block2_dirty[dcache_sel.idx];
                 end
+                next_block1_dirty = block1_dirty[dcache_sel.idx];
+                next_block2_dirty = block2_dirty[dcache_sel.idx];
 
                 next_recent_block = recent_block[dcache_sel.idx];
-
-                flush_count_next = flush_count;
             end
 
             WB2: begin
                 ccif.dREN = 0;
                 ccif.dWEN = 1;
-                dcif.flushed = 0;
 
                 next_block1_data1 = block1_data1[dcache_sel.idx];
                 next_block1_data2 = block1_data2[dcache_set.idx];
@@ -344,25 +372,13 @@ module dcache (
                 end
 
                 next_recent_block = recent_block[dcache_sel.idx];
-
-                flush_count_next = flush_count;
             end
 
-            FLUSHW1: begin
-            end
-
-            FLUSHW2: begin
-            end
-
-            FLUSHW_HIT: begin
-            end
-
-            default: begin
+            FLUSHB1W1: begin
                 ccif.dREN = 0;
-                ccif.dWEN = 0;
+                ccif.dWEN = 1;
                 ccif.dstore = 0;
                 ccif.daddr = 0;
-                dcif.flushed = 0;
 
                 next_block1_data1 = block1_data1[dcache_sel.idx];
                 next_block1_data2 = block1_data2[dcache_set.idx];
@@ -379,14 +395,36 @@ module dcache (
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
                 next_recent_block = recent_block[dcache_sel.idx];
+                
+            end
 
-                flush_count_next = flush_count;
+            FLUSHB1W2: begin
+                ccif.dREN = 0;
+                ccif.dWEN = 1;
+                //
+            end
+
+            FLUSHB2W1: begin
+                ccif.dREN = 0;
+                ccif.dWEN = 1;
+                //
+            end
+
+            FLUSHB2W2: begin
+                ccif.dREN = 0;
+                ccif.dWEN = 1;
+                //
+            end
+
+            FLUSHW_HIT: begin
             end
 
         endcase
     end
 
+    //
     //assign next_recent_block and remove from above
     //assign ccif.dmemload
+    assign dcif.flushed = (flush_idx_count == 0) ? 1'b0: 1'b1;
 
 endmodule
