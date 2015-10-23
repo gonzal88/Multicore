@@ -95,6 +95,6 @@ module icache (
   assign dcif.ihit = hit;
 
   assign ccif.iREN = update_block;
-  assign ccif.iaddr[0] = (update_block == 1'b1) ? dcif.imemaddr : 32'b0 ;
+  assign ccif.iaddr = (update_block == 1'b1) ? dcif.imemaddr : 32'b0 ;
 
 endmodule
