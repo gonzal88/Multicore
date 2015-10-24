@@ -48,7 +48,7 @@ endmodule
 program test (
     input logic CLK,
     output logic nRST,
-    datapath_cache_if.dp dcif,
+    datapath_cache_if dcif,
     cache_control_if.cc ccif,
     cpu_ram_if.ram ramif
 );
@@ -205,11 +205,11 @@ program test (
 
 
         // Go for some capacity miss writes
-        for (i = 0; i < 2048; i += 4) begin
+        /*for (i = 0; i < 2048; i += 4) begin
             dcif.dmemWEN = 1;
             dcif.dmemaddr = i;
             dcif.dmemstore = 32'h12345678;
-            @(posedge dcif.dhit)
+            @(posedge dcif.dhit);
         end
         dcif.dmemWEN = 0;
 
@@ -219,9 +219,9 @@ program test (
         for (i = 0; i < 2048; i += 4) begin
             dcif.dmemREN = 1;
             dcif.dmemaddr = i;
-            @(posedge dcif.dhit)
+            @(posedge dcif.dhit);
         end
-        dcif.dmemREN = 0;
+        dcif.dmemREN = 0;*/
 
         dcif.halt = 1;
         $display("dcif.flushed should be asserted.\n");
