@@ -104,57 +104,57 @@ program test (
 
 
         // Write some hits
-        /*dcif.dmemWEN = 1;
+        dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'hAAAAAAA0;
         dcif.dmemstore = 32'hAAAAAAAB;
-        @(posedge dcif.dhit) // Will eventually resolve to a hit after missing see waveform to check timing
+        //@(posedge dcif.dhit) 
 	dcif.dmemWEN = 0;
-	#(PERIOD)
+	#(PERIOD*5)
 
         dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'hDDDDDDD4;
         dcif.dmemstore = 32'hDDDDDDDB;
-        @(posedge dcif.dhit)
+        //@(posedge dcif.dhit)
 	dcif.dmemWEN = 0;
-	#(PERIOD)
+	#(PERIOD*5)
 
         dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'hBBBBBBB8;
         dcif.dmemstore = 32'hBBBBBBBC;
-        @(posedge dcif.dhit)
+        //@(posedge dcif.dhit)
 	dcif.dmemWEN = 0;
-	#(PERIOD)
+	#(PERIOD*5)
 
         dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'hCCCCCCCC;
         dcif.dmemstore = 32'hCCCCCCCB;
-        @(posedge dcif.dhit)
+        //@(posedge dcif.dhit)
         dcif.dmemWEN = 0;
-	#(PERIOD)
+	#(PERIOD*5)
 
 
 
-        // Read hits
+        /*// Read hits
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hAAAAAAA0;
-        @(posedge dcif.dhit)
-	#(PERIOD)
+        //@(posedge dcif.dhit)
+	#(PERIOD*5)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hDDDDDDD4;
-        @(posedge dcif.dhit)
-	#(PERIOD)
+        //@(posedge dcif.dhit)
+	#(PERIOD*5)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hBBBBBBB8;
-        @(posedge dcif.dhit)
-	#(PERIOD)
+        //@(posedge dcif.dhit)
+	#(PERIOD*5)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hCCCCCCCC;
-        @(posedge dcif.dhit)
+        //@(posedge dcif.dhit)
         dcif.dmemREN = 0;
-	#(PERIOD)
+	#(PERIOD*5)
 
 
 
@@ -184,28 +184,28 @@ program test (
 
         // Write some conflict misses
         dcif.dmemWEN = 1;
-        dcif.dmemaddr = 32'hAAAAAAA0;
+        dcif.dmemaddr = 32'h1AAAAAA0;
         dcif.dmemstore = 32'hA123AAAB;
         @(posedge dcif.dhit) // Will eventually resolve to a hit after missing see waveform to check timing
 	dcif.dmemWEN = 0;
 	#(PERIOD)
 
         dcif.dmemWEN = 1;
-        dcif.dmemaddr = 32'hDDDDDDD4;
+        dcif.dmemaddr = 32'h1DDDDDD4;
         dcif.dmemstore = 32'hD123DDDB;
         @(posedge dcif.dhit)
 	dcif.dmemWEN = 0;
 	#(PERIOD)
 
         dcif.dmemWEN = 1;
-        dcif.dmemaddr = 32'hBBBBBBB8;
+        dcif.dmemaddr = 32'h1BBBBBB8;
         dcif.dmemstore = 32'hB123BBBC;
         @(posedge dcif.dhit)
 	dcif.dmemWEN = 0;
 	#(PERIOD)
 
         dcif.dmemWEN = 1;
-        dcif.dmemaddr = 32'hCCCCCCCC;
+        dcif.dmemaddr = 32'h1CCCCCCC;
         dcif.dmemstore = 32'hC123CCCB;
         @(posedge dcif.dhit)
         dcif.dmemWEN = 0;
@@ -233,7 +233,7 @@ program test (
         dcif.dmemaddr = 32'hCCCCCCCC;
         @(posedge dcif.dhit)
         dcif.dmemREN = 0;
-	#(PERIOD)*/
+	#(PERIOD) */
 
 
 
