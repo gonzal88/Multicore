@@ -4,6 +4,9 @@
   csutaria@purdue.edu 
 
   Dcache testbench
+
+  **SHOULD ASSEMBLE AN ASM FILE OR MEMDUMP WILL COMPLAIN**
+
  */
 
 `include "datapath_cache_if.vh"
@@ -182,7 +185,7 @@ program test (
 
 
 
-        /*// Write some conflict misses
+        // Write some conflict misses
         dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'h1AAAAAA0;
         dcif.dmemstore = 32'hA123AAAB;
@@ -213,38 +216,38 @@ program test (
 
 
 
-        // Read and verify the conflict misses
+        // Read and verify the conflict misses (WILL BE HITS)
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hAAAAAAA0;
-        @(posedge dcif.dhit)
-	#(PERIOD)
+        //@(posedge dcif.dhit)
+	#(PERIOD*5)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hDDDDDDD4;
-        @(posedge dcif.dhit)
-	#(PERIOD)
+        //@(posedge dcif.dhit)
+	#(PERIOD*5)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hBBBBBBB8;
-        @(posedge dcif.dhit)
-	#(PERIOD)
+        //@(posedge dcif.dhit)
+	#(PERIOD*5)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hCCCCCCCC;
-        @(posedge dcif.dhit)
+        //@(posedge dcif.dhit)
         dcif.dmemREN = 0;
-	#(PERIOD) */
+	#(PERIOD*5) 
 
 
 
         // Go for some capacity miss writes
-        /*for (i = 0; i < 2048; i += 4) begin
+        for (i = 0; i < 2048; i += 4) begin
             dcif.dmemWEN = 1;
             dcif.dmemaddr = i;
             dcif.dmemstore = 32'h12345678;
-            @(posedge dcif.dhit);
+            //@(posedge dcif.dhit);
 	    dcif.dmemWEN = 0;
-	    #(PERIOD);
+	    #(PERIOD*5);
         end
         dcif.dmemWEN = 0;
 
@@ -254,10 +257,10 @@ program test (
         for (i = 0; i < 2048; i += 4) begin
             dcif.dmemREN = 1;
             dcif.dmemaddr = i;
-            @(posedge dcif.dhit);
-            #(PERIOD);
+            //@(posedge dcif.dhit);
+            #(PERIOD*5);
         end
-        dcif.dmemREN = 0;*/
+        dcif.dmemREN = 0;
 
         dcif.halt = 1;
         $display("dcif.flushed should be asserted.\n");
