@@ -134,7 +134,7 @@ program test (
 
 
 
-        /*// Read hits
+        // Read hits
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hAAAAAAA0;
         //@(posedge dcif.dhit)
@@ -158,7 +158,7 @@ program test (
 
 
 
-        // Read misses
+        /*// Read misses
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'h1111AAA0;
         @(posedge dcif.dhit)
