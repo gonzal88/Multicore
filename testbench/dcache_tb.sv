@@ -158,7 +158,7 @@ program test (
 
 
 
-        /*// Read misses
+        // Read misses
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'h1111AAA0;
         @(posedge dcif.dhit)
@@ -182,7 +182,7 @@ program test (
 
 
 
-        // Write some conflict misses
+        /*// Write some conflict misses
         dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'h1AAAAAA0;
         dcif.dmemstore = 32'hA123AAAB;
