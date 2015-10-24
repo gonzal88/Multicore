@@ -72,20 +72,156 @@ program test (
         #(PERIOD)
 
         // Write a few compulsory misses
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hAAAAAAA0;
+        dcif.dmemstore = 32'hAAAAAAAA;
+        @(posedge dcif.dhit) // Will eventually resolve to a hit after missing see waveform to check timing
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hDDDDDDD4;
+        dcif.dmemstore = 32'hDDDDDDDD;
+        @(posedge dcif.dhit)
+
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hBBBBBBB8;
+        dcif.dmemstore = 32'hBBBBBBBB;
+        @(posedge dcif.dhit)
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hCCCCCCCC;
+        dcif.dmemstore = 32'hCCCCCCCC;
+        @(posedge dcif.dhit)
+        dcif.dmemWEN = 0;
+
+
 
         // Write some hits
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hAAAAAAA0;
+        dcif.dmemstore = 32'hAAAAAAAB;
+        @(posedge dcif.dhit) // Will eventually resolve to a hit after missing see waveform to check timing
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hDDDDDDD4;
+        dcif.dmemstore = 32'hDDDDDDDB;
+        @(posedge dcif.dhit)
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hBBBBBBB8;
+        dcif.dmemstore = 32'hBBBBBBBC;
+        @(posedge dcif.dhit)
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hCCCCCCCC;
+        dcif.dmemstore = 32'hCCCCCCCB;
+        @(posedge dcif.dhit)
+        dcif.dmemWEN = 0;
+
+
 
         // Read hits
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'hAAAAAAA0;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'hDDDDDDD4;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'hBBBBBBB8;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'hCCCCCCCC;
+        @(posedge dcif.dhit)
+        dcif.dmemREN = 0;
+
+
 
         // Read misses
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'h1111AAA0;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'h1111DDD4;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'h11BBBBB8;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'h11CCCCCC;
+        @(posedge dcif.dhit)
+        dcif.dmemREN = 0;
+
+
 
         // Write some conflict misses
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hAAAAAAA0;
+        dcif.dmemstore = 32'hA123AAAB;
+        @(posedge dcif.dhit) // Will eventually resolve to a hit after missing see waveform to check timing
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hDDDDDDD4;
+        dcif.dmemstore = 32'hD123DDDB;
+        @(posedge dcif.dhit)
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hBBBBBBB8;
+        dcif.dmemstore = 32'hB123BBBC;
+        @(posedge dcif.dhit)
+
+        dcif.dmemWEN = 1;
+        dcif.dmemaddr = 32'hCCCCCCCC;
+        dcif.dmemstore = 32'hC123CCCB;
+        @(posedge dcif.dhit)
+        dcif.dmemWEN = 0;
+
+
 
         // Read and verify the conflict misses
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'hAAAAAAA0;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'hDDDDDDD4;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'hBBBBBBB8;
+        @(posedge dcif.dhit)
+
+        dcif.dmemREN = 1;
+        dcif.dmemaddr = 32'hCCCCCCCC;
+        @(posedge dcif.dhit)
+        dcif.dmemREN = 0;
+
+
 
         // Go for some capacity miss writes
+        for (i = 0; i < 2048; i += 4) begin
+            dcif.dmemWEN = 1;
+            dcif.dmemaddr = i;
+            dcif.dmemstore = 32'h12345678;
+            @(posedge dcif.dhit)
+        end
+        dcif.dmemWEN = 0;
+
+
 
         // Read and verify the capacity miss writes
+        for (i = 0; i < 2048; i += 4) begin
+            dcif.dmemREN = 1;
+            dcif.dmemaddr = i;
+            @(posedge dcif.dhit)
+        end
+        dcif.dmemREN = 0;
 
         dcif.halt = 1;
         $display("dcif.flushed should be asserted.\n");
