@@ -4,9 +4,6 @@
   csutaria@purdue.edu 
 
   Dcache testbench
-
-  **SHOULD ASSEMBLE AN ASM FILE OR MEMDUMP WILL COMPLAIN**
-
  */
 
 `include "datapath_cache_if.vh"
@@ -107,57 +104,57 @@ program test (
 
 
         // Write some hits
-        dcif.dmemWEN = 1;
+        /*dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'hAAAAAAA0;
         dcif.dmemstore = 32'hAAAAAAAB;
-        //@(posedge dcif.dhit) 
+        @(posedge dcif.dhit) // Will eventually resolve to a hit after missing see waveform to check timing
 	dcif.dmemWEN = 0;
-	#(PERIOD*5)
+	#(PERIOD)
 
         dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'hDDDDDDD4;
         dcif.dmemstore = 32'hDDDDDDDB;
-        //@(posedge dcif.dhit)
+        @(posedge dcif.dhit)
 	dcif.dmemWEN = 0;
-	#(PERIOD*5)
+	#(PERIOD)
 
         dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'hBBBBBBB8;
         dcif.dmemstore = 32'hBBBBBBBC;
-        //@(posedge dcif.dhit)
+        @(posedge dcif.dhit)
 	dcif.dmemWEN = 0;
-	#(PERIOD*5)
+	#(PERIOD)
 
         dcif.dmemWEN = 1;
         dcif.dmemaddr = 32'hCCCCCCCC;
         dcif.dmemstore = 32'hCCCCCCCB;
-        //@(posedge dcif.dhit)
+        @(posedge dcif.dhit)
         dcif.dmemWEN = 0;
-	#(PERIOD*5)
+	#(PERIOD)
 
 
 
         // Read hits
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hAAAAAAA0;
-        //@(posedge dcif.dhit)
-	#(PERIOD*5)
+        @(posedge dcif.dhit)
+	#(PERIOD)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hDDDDDDD4;
-        //@(posedge dcif.dhit)
-	#(PERIOD*5)
+        @(posedge dcif.dhit)
+	#(PERIOD)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hBBBBBBB8;
-        //@(posedge dcif.dhit)
-	#(PERIOD*5)
+        @(posedge dcif.dhit)
+	#(PERIOD)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hCCCCCCCC;
-        //@(posedge dcif.dhit)
+        @(posedge dcif.dhit)
         dcif.dmemREN = 0;
-	#(PERIOD*5)
+	#(PERIOD)
 
 
 
@@ -187,28 +184,28 @@ program test (
 
         // Write some conflict misses
         dcif.dmemWEN = 1;
-        dcif.dmemaddr = 32'h1AAAAAA0;
+        dcif.dmemaddr = 32'hAAAAAAA0;
         dcif.dmemstore = 32'hA123AAAB;
         @(posedge dcif.dhit) // Will eventually resolve to a hit after missing see waveform to check timing
 	dcif.dmemWEN = 0;
 	#(PERIOD)
 
         dcif.dmemWEN = 1;
-        dcif.dmemaddr = 32'h1DDDDDD4;
+        dcif.dmemaddr = 32'hDDDDDDD4;
         dcif.dmemstore = 32'hD123DDDB;
         @(posedge dcif.dhit)
 	dcif.dmemWEN = 0;
 	#(PERIOD)
 
         dcif.dmemWEN = 1;
-        dcif.dmemaddr = 32'h1BBBBBB8;
+        dcif.dmemaddr = 32'hBBBBBBB8;
         dcif.dmemstore = 32'hB123BBBC;
         @(posedge dcif.dhit)
 	dcif.dmemWEN = 0;
 	#(PERIOD)
 
         dcif.dmemWEN = 1;
-        dcif.dmemaddr = 32'h1CCCCCCC;
+        dcif.dmemaddr = 32'hCCCCCCCC;
         dcif.dmemstore = 32'hC123CCCB;
         @(posedge dcif.dhit)
         dcif.dmemWEN = 0;
@@ -216,38 +213,38 @@ program test (
 
 
 
-        // Read and verify the conflict misses (WILL BE HITS)
+        // Read and verify the conflict misses
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hAAAAAAA0;
-        //@(posedge dcif.dhit)
-	#(PERIOD*5)
+        @(posedge dcif.dhit)
+	#(PERIOD)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hDDDDDDD4;
-        //@(posedge dcif.dhit)
-	#(PERIOD*5)
+        @(posedge dcif.dhit)
+	#(PERIOD)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hBBBBBBB8;
-        //@(posedge dcif.dhit)
-	#(PERIOD*5)
+        @(posedge dcif.dhit)
+	#(PERIOD)
 
         dcif.dmemREN = 1;
         dcif.dmemaddr = 32'hCCCCCCCC;
-        //@(posedge dcif.dhit)
+        @(posedge dcif.dhit)
         dcif.dmemREN = 0;
-	#(PERIOD*5) 
+	#(PERIOD)*/
 
 
 
-        /*// Go for some capacity miss writes
-        for (i = 0; i < 2048; i += 4) begin
+        // Go for some capacity miss writes
+        /*for (i = 0; i < 2048; i += 4) begin
             dcif.dmemWEN = 1;
             dcif.dmemaddr = i;
             dcif.dmemstore = 32'h12345678;
-            //@(posedge dcif.dhit);
+            @(posedge dcif.dhit);
 	    dcif.dmemWEN = 0;
-	    #(PERIOD*5);
+	    #(PERIOD);
         end
         dcif.dmemWEN = 0;
 
@@ -257,8 +254,8 @@ program test (
         for (i = 0; i < 2048; i += 4) begin
             dcif.dmemREN = 1;
             dcif.dmemaddr = i;
-            //@(posedge dcif.dhit);
-            #(PERIOD*5);
+            @(posedge dcif.dhit);
+            #(PERIOD);
         end
         dcif.dmemREN = 0;*/
 
