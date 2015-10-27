@@ -27,14 +27,14 @@ module caches (
   word_t daddr;
 
   // icache
-  //icache  ICACHE(CLK, nRST, dcif, ccif);
+  icache  ICACHE(CLK, nRST, dcif, ccif);
   // dcache
-  //dcache  DCACHE(CLK, nRST, dcif, ccif);
+  dcache  DCACHE(CLK, nRST, dcif, ccif);
 
   // single cycle instr saver (for memory ops)
 
   // dcache invalidate before halt
-  assign dcif.flushed = dcif.halt;
+  /*assign dcif.flushed = dcif.halt;
 
   //singlecycle
   assign dcif.ihit = (dcif.imemREN) ? ~ccif.iwait : 0;
@@ -47,8 +47,8 @@ module caches (
   assign ccif.dREN = dcif.dmemREN;
   assign ccif.dWEN = dcif.dmemWEN;
   assign ccif.dstore = dcif.dmemstore;
-  assign ccif.iaddr = dcif.imemaddr;
+  //assign ccif.iaddr = dcif.imemaddr;
 
   assign ccif.daddr = dcif.dmemaddr;
-
+*/
 endmodule

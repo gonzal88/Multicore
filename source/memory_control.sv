@@ -30,12 +30,12 @@ module memory_control (
    
    always_comb begin
       if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-	 ccif.dwait[0] = ((!ccif.dREN[0]) && (!ccif.dWEN[0])) ?1'b1:1'b0;
+	 ccif.dwait[0] = ((ccif.iREN[0]) && (!ccif.dREN[0]) && (!ccif.dWEN[0])) ?1'b1:1'b0;
 	 ccif.iwait[0] = ((ccif.dREN[0]) || (ccif.dWEN[0]))? 1'b1: 1'b0;
       end
       else if (ccif.ramstate == FREE) begin //FREE
-	 ccif.iwait[0] = 1'b1;
-	 ccif.dwait[0] = 1'b1;
+	 ccif.iwait[0] = 1'b0;
+	 ccif.dwait[0] = 1'b0;
       end
       else begin //BUSY, ERROR and default
 	 ccif.iwait[0] = 1'b1;

@@ -78,32 +78,32 @@ module exmem
 	    exme.target_o <= exme.target_i;
 	 end // if (exme.flush)
 	 else begin
-	    exme.npc_o <= 0;
-	    exme.braPC_o <= 0;
-	    exme.Jaddr_o <= 0;
-	    exme.rdat2_o <= 0;
-	    exme.rdat1_o <= 0;
-	    exme.alu_out_o <= 0;
-	    exme.extout_o <= 0;
-	    exme.Mem_o <= 0;
-	    exme.Branch_o <= 0;
-	    exme.DRen_o <= 0;
-	    exme.DWen_o <= 0;
-	    exme.RegW_o <= 0;
-	    exme.RegDest_o <= 0;
-	    exme.halt_o <= 0;
-	    exme.opcode_o <= RTYPE;
-	    exme.funct_o <= exme.funct_i;
-	    exme.jump_o <= 0;
-	    exme.jr_o <= 0;
-	    exme.BNE_o <= 0;
-	    exme.zero_o <= 0;
-	    exme.rs_o <= 0;
-	    exme.rd_o <= 0;
-	    exme.rt_o <= 0;
-	    exme.dload_o <= 0;
-	    exme.target_o <= 0;
-	    exme.ALUsource_o <= 0;
+	    exme.npc_o <= exme.npc_o;
+	    exme.braPC_o <= exme.braPC_o;
+	    exme.Jaddr_o <= exme.Jaddr_o;
+	    exme.rdat2_o <= exme.rdat2_o;
+	    exme.rdat1_o <= exme.rdat1_o;
+	    exme.alu_out_o <= exme.alu_out_o;
+	    exme.extout_o <= exme.extout_o;
+	    exme.Mem_o <= exme.Mem_o;
+	    exme.Branch_o <= exme.Branch_o;
+	    exme.DRen_o <= exme.DRen_o;
+	    exme.DWen_o <= exme.DWen_o;
+	    exme.RegW_o <= exme.RegW_o;
+	    exme.RegDest_o <= exme.RegDest_o;
+	    exme.halt_o <= exme.halt_o;
+	    exme.opcode_o <= exme.opcode_o;
+	    exme.funct_o <= exme.funct_o;
+	    exme.jump_o <= exme.jump_o;
+	    exme.jr_o <= exme.jr_o;
+	    exme.BNE_o <= exme.BNE_o;
+	    exme.zero_o <= exme.zero_o;
+	    exme.rs_o <= exme.rs_o;
+	    exme.rd_o <= exme.rd_o;
+	    exme.rt_o <= exme.rt_o;
+	    exme.ALUsource_o <= exme.ALUsource_o;
+	    exme.dload_o <= exme.dload_o;
+	    exme.target_o <= exme.target_o;
 	    
 	 end
       end // else: !if(!nRST || exme.flush)
