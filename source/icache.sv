@@ -51,8 +51,8 @@ module icache (
   end // always_ff @
 
   always_comb begin
-    update_block = 1'b0;
-
+     update_block = 1'b0;
+     
     next_block_data = block_data[icache_sel.idx];
     next_block_tag = block_tag[icache_sel.idx];
     next_block_valid = block_valid[icache_sel.idx];

@@ -180,9 +180,9 @@ module dcache (
 
             FLUSHB2W2: begin
                 hit_counter_next = hit_counter;
-                if ((flush_idx_count != 3'd7) && (!ccif.dwait)) begin 
+                if ((flush_idx_count_next != 3'd7) && (!ccif.dwait)) begin 
                     next_state = FLUSHB1W1;
-                end else if ((flush_idx_count == 3'd7) && (!ccif.dwait)) begin //flush_count or flush_count_next?
+                end else if ((flush_idx_count_next == 3'd7) && (!ccif.dwait)) begin //flush_count or flush_count_next?
                     next_state = FLUSHW_HIT;
                 end else begin
                     next_state = FLUSHB2W2;
@@ -426,8 +426,8 @@ module dcache (
                 end else begin
                     ccif.dWEN = 0;
                 end
-                ccif.dstore = block1_data2[flush_idx_count];
-                ccif.daddr = {block1_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
+                ccif.dstore = block1_data2[flush_idx_count_next];
+                ccif.daddr = {block1_tag[flush_idx_count_next], flush_idx_count_next, 1'b1, 2'b00};
 
                 next_block1_data1 = block1_data1[dcache_sel.idx];
                 next_block1_data2 = block1_data2[dcache_sel.idx];
@@ -478,8 +478,8 @@ module dcache (
                 end else begin
                     ccif.dWEN = 0;
                 end
-                ccif.dstore = block2_data2[flush_idx_count];
-                ccif.daddr = {block2_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
+                ccif.dstore = block2_data2[flush_idx_count_next];
+                ccif.daddr = {block2_tag[flush_idx_count_next], flush_idx_count_next, 1'b1, 2'b00};
 
                 next_block1_data1 = block1_data1[dcache_sel.idx];
                 next_block1_data2 = block1_data2[dcache_sel.idx];
@@ -541,7 +541,7 @@ module dcache (
     //assign dcif.dmemload
     always_comb begin
         dcif.dmemload = block1_data1[dcache_sel.idx];
-        if (hit && (block2_tag[dcache_sel.idx] == dcache_sel.tag)) begin
+        if (hit && (dcif.dmemREN || dcif.dmemWEN)&& (block2_tag[dcache_sel.idx] == dcache_sel.tag)) begin
             if (dcache_sel.blkoff == 1'b1) begin
                 dcif.dmemload = block2_data2[dcache_sel.idx];
             end else begin

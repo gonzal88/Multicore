@@ -29,10 +29,10 @@ module caches (
   // icache
   icache  ICACHE(CLK, nRST, dcif, ccif);
   // dcache
-  //dcache  DCACHE(CLK, nRST, dcif, ccif);
+  dcache  DCACHE(CLK, nRST, dcif, ccif);
 
   // single cycle instr saver (for memory ops)
-
+/*
   // dcache invalidate before halt
   assign dcif.flushed = dcif.halt;
 
@@ -50,5 +50,5 @@ module caches (
   //assign ccif.iaddr = dcif.imemaddr;
 
   assign ccif.daddr = dcif.dmemaddr;
-
+*/
 endmodule
