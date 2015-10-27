@@ -550,6 +550,6 @@ module dcache (
         end
     end
 
-    assign dcif.flushed = ((flush_idx_count == 0)&& (curr_state == IDLE)) ? 1'b0: 1'b1;
+    assign dcif.flushed = ((flush_idx_count == 3'd7)&& (curr_state == IDLE)) ? 1'b1: 1'b0;
 
 endmodule
