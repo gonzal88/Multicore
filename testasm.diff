@@ -1,26 +1,14 @@
 processing file asmFiles/branches.asm (1 of 24)
---- memsim.hex	2015-10-26 14:39:21.367745682 -0400
-+++ memcpu.hex	2015-10-26 14:39:21.140739285 -0400
-@@ -5,5 +5,4 @@
- :04000400AC4100000B
- :04000500AC42000405
- :04000600FFFFFFFFFA
--:043334000000CCCCFD
- :00000001FF
-processing file asmFiles/branches.asm~ (2 of 24)
---- memsim.hex	2015-10-26 14:39:23.560807473 -0400
-+++ memcpu.hex	2015-10-26 14:39:23.309800401 -0400
-@@ -5,5 +5,4 @@
- :04000400AC4100000B
- :04000500AC42000405
- :04000600FFFFFFFFFA
--:043334000000CCCCFD
- :00000001FF
-processing file asmFiles/count_days.asm (3 of 24)
 processing file asmFiles/branches.asm (1 of 24)
 processing file asmFiles/branches.asm~ (2 of 24)
 processing file asmFiles/count_days.asm (3 of 24)
-processing file asmFiles/branches.asm (1 of 24)
-processing file asmFiles/branches.asm~ (2 of 24)
-processing file asmFiles/branches.asm (1 of 24)
-processing file asmFiles/branches.asm~ (2 of 24)
+processing file asmFiles/count_days.asm~ (4 of 24)
+processing file asmFiles/#fib1.asm# (5 of 24)
+processing file asmFiles/mergesort.asm (1 of 4)
+processing file asmFiles/mult.asm (1 of 3)
+processing file asmFiles/orisw.asm (1 of 2)
+processing file asmFiles/orisw.asm~ (2 of 2)
+processing file asmFiles/search.asm (1 of 1)
+processing file asmFiles/jumpandlink.asm (1 of 2)
+processing file asmFiles/jumpandlink.asm~ (2 of 2)
+processing file asmFiles/fib1.asm (1 of 3)

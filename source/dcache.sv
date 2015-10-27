@@ -44,14 +44,20 @@ module dcache (
     logic next_recent_block;
 
     logic hit;
+   logic  hit1;
+   logic  hit2;
+   
     word_t hit_counter, hit_counter_next;
     logic [2:0] flush_idx_count;
     logic [2:0] flush_idx_count_next;
 
-    assign dcache_sel = dcachef_t'(dcif.dmemaddr); //'
+    assign dcache_sel = dcachef_t'(dcif.dmemaddr); 
     
-    assign hit = (((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx]) || ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx])) ? 1'b1 : 1'b0 ;
-    assign dcif.dhit = hit;
+   assign hit1 = ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx]) ? 1'b1 : 1'b0; // || ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx])) ? 1'b1 : 1'b0 ;
+   assign dcif.dhit = hit;
+   assign hit = hit1 || hit2;
+   
+   assign hit2 = ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx]) ? 1'b1 : 1'b0;
 
     always_ff @(posedge CLK or negedge nRST) begin
         if (!nRST) begin
@@ -90,10 +96,10 @@ module dcache (
     always_comb begin
         casez (curr_state)
             IDLE: begin
-                if (!hit && !(block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and not dirty
+                if (!hit && (dcif.dmemWEN || dcif.dmemREN) && !(block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and not dirty
                     hit_counter_next = hit_counter - 1;
                     next_state =  UPDATE1;
-                end else if (!hit && (block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and dirty
+                end else if (!hit && (dcif.dmemWEN || dcif.dmemREN) && (block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and dirty
                     hit_counter_next = hit_counter - 1;
                     next_state = WB1;
                 end else if (dcif.halt) begin
@@ -381,7 +387,7 @@ module dcache (
                     next_block1_dirty = 0;
                     next_block2_dirty = block2_dirty[dcache_sel.idx];
                 end else begin // else if block 1 used most recently, wb block 2 WORD 2
-                    ccif.dstore = block2_data1[dcache_sel.idx]; //curr block 2 WORD2
+                    ccif.dstore = block2_data2[dcache_sel.idx]; //curr block 2 WORD2
                     ccif.daddr = {block2_tag[dcache_sel.idx], dcache_sel.idx, 1'b1, 2'b00}; //curr index block 2 tag + dcache_sel.idx + 1'b1 + byteoffset
                     next_block1_dirty = block1_dirty[dcache_sel.idx];
                     next_block2_dirty = 0;
@@ -550,6 +556,6 @@ module dcache (
         end
     end
 
-    assign dcif.flushed = ((flush_idx_count == 0)&& (curr_state == IDLE)) ? 1'b0: 1'b1;
+   assign dcif.flushed = ((flush_idx_count == 3'd7) && (curr_state == IDLE)) ? 1'b1: 1'b0;
 
 endmodule
