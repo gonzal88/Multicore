@@ -157,7 +157,8 @@ module datapath (
    assign idex.rt_i = rtype.rt;
    assign idex.shamt_i = rtype.shamt;
    assign idex.dload_i = ifid.dload_o;
-   assign idex.flush = (ifid.iload_o == 0) || hazard_enable || branch_out;
+   
+   assign idex.flush = ((ifid.iload_o == 0) || hazard_enable || branch_out) && !cuif.halt;
 // || ifid.dload_o == 32'hBAD1BAD1;//
    
    
@@ -221,7 +222,7 @@ module datapath (
    assign exme.ALUsource_i = exme.ALUsource_o;
    assign exme.rt_i = idex.rt_o;
    assign exme.dload_i = idex.dload_o;
-   assign exme.enable = exme.opcode_o == LW || exme.opcode_o == SW ? dpif.dhit : 1'b1;//dpif.ihit || dpif.dhit;
+   assign exme.enable = !idex.halt_o && (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : 1'b1;//dpif.ihit || dpif.dhit;
    assign exme.target_i = idex.target_o;
    
 
@@ -253,7 +254,7 @@ module datapath (
    assign dpif.dmemWEN = exme.DWen_o;
    assign mem.dload_i = dpif.dmemload;
    assign mem.ALUsource_i = exme.ALUsource_o;
-   assign mem.enable = exme.opcode_o == LW || exme.opcode_o == SW ? dpif.dhit : 1'b1;
+   assign mem.enable = !exme.halt_o && (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : 1'b1;
    assign mem.target_i = exme.target_o;
    
    

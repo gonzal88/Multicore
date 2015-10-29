@@ -94,13 +94,15 @@ module dcache (
     end // always_ff @
 
     always_comb begin
+       flush_idx_count_next = flush_idx_count;
         casez (curr_state)
-            IDLE: begin
+	  
+	      IDLE: begin
                 if (!hit && (dcif.dmemWEN || dcif.dmemREN) && !(block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and not dirty
-                    hit_counter_next = hit_counter - 1;
+                   hit_counter_next = hit_counter - 1;
                     next_state =  UPDATE1;
                 end else if (!hit && (dcif.dmemWEN || dcif.dmemREN) && (block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and dirty
-                    hit_counter_next = hit_counter - 1;
+                   hit_counter_next = hit_counter - 1;
                     next_state = WB1;
                 end else if (dcif.halt) begin
                     hit_counter_next = hit_counter;
@@ -180,10 +182,13 @@ module dcache (
 
             FLUSHB2W2: begin
                 hit_counter_next = hit_counter;
-                if ((flush_idx_count_next != 3'd7) && (!ccif.dwait)) begin 
+	        
+                if ((flush_idx_count != 3'd7) && (!ccif.dwait)) begin 
                     next_state = FLUSHB1W1;
-                end else if ((flush_idx_count_next == 3'd7) && (!ccif.dwait)) begin //flush_count or flush_count_next?
+		    flush_idx_count_next = flush_idx_count + 3'd1;
+                end else if ((flush_idx_count == 3'd7) && (!ccif.dwait)) begin //flush_count or flush_count_next?
                     next_state = FLUSHW_HIT;
+		    //flush_idx_count_next = flush_idx_count + 3'd1;
                 end else begin
                     next_state = FLUSHB2W2;
                 end
@@ -220,7 +225,7 @@ module dcache (
         next_block1_dirty = block1_dirty[dcache_sel.idx];
         next_block2_dirty = block2_dirty[dcache_sel.idx];
 
-        flush_idx_count_next = flush_idx_count;
+        //flush_idx_count_next = flush_idx_count;
 
         casez(curr_state)
             IDLE: begin
@@ -235,7 +240,7 @@ module dcache (
                 next_block1_valid = block1_valid[dcache_sel.idx];
                 next_block2_valid = block2_valid[dcache_sel.idx];
 
-                flush_idx_count_next = flush_idx_count;
+                //flush_idx_count_next = flush_idx_count;
 
                 if (dcif.dmemWEN && ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx])) begin //block 1 hit
                     if (dcache_sel.blkoff == 1'b0) begin // word 1
@@ -286,12 +291,17 @@ module dcache (
                 ccif.daddr = {dcif.dmemaddr[WORD_W-1:3], 1'b0, 2'b00}; // Could possibly also just leave byte offset as 00
 
                 if (recent_block[dcache_sel.idx] == 1) begin // if block 2 used most recently, evict block 1
-                    next_block1_data1 = ccif.dload;
+		   //if writing to word 1 write that from dmemstore instead
+		    if (dcif.dmemWEN && (dcache_sel.blkoff == 1'b0)) begin
+		      next_block1_data1 = dcif.dmemstore;
+		    end else begin
+                      next_block1_data1 = ccif.dload;
+		    end
                     next_block1_data2 = block1_data2[dcache_sel.idx];
                     next_block2_data1 = block2_data1[dcache_sel.idx];
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
-                   next_block1_tag = dcache_sel.tag;//block1_tag[dcache_sel.idx];
+                   next_block1_tag = block1_tag[dcache_sel.idx];
                     next_block2_tag = block2_tag[dcache_sel.idx];
 
                     next_block1_valid = 0;//Correct,right?  Don't want to switch to hit in the middle of block (can also just not update tag until UPDATE2. or both.)
@@ -299,11 +309,15 @@ module dcache (
                 end else begin // else if block 1 used most recently evict block 2
                     next_block1_data1 = block1_data1[dcache_sel.idx];
                     next_block1_data2 = block1_data2[dcache_sel.idx];
-                    next_block2_data1 = ccif.dload;
+		    if (dcif.dmemWEN && (dcache_sel.blkoff == 1'b0)) begin
+		      next_block2_data1 = dcif.dmemstore;
+		    end else begin
+                      next_block2_data1 = ccif.dload;
+		    end
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
                     next_block1_tag = block1_tag[dcache_sel.idx];
-                   next_block2_tag = dcache_sel.tag;//block2_tag[dcache_sel.idx];
+                   next_block2_tag = block2_tag[dcache_sel.idx];
 
                     next_block1_valid = block1_valid[dcache_sel.idx];
                     next_block2_valid = 0;
@@ -321,7 +335,11 @@ module dcache (
 
                 if (recent_block[dcache_sel.idx] == 1) begin // if block 2 used most recently, evict block 1
                     next_block1_data1 = block1_data1[dcache_sel.idx];
-                    next_block1_data2 = ccif.dload;
+		    if (dcif.dmemWEN && (dcache_sel.blkoff == 1'b1)) begin
+		      next_block1_data2 = dcif.dmemstore;
+		    end else begin
+                      next_block1_data2 = ccif.dload;
+		    end
                     next_block2_data1 = block2_data1[dcache_sel.idx];
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
@@ -334,7 +352,11 @@ module dcache (
                     next_block1_data1 = block1_data1[dcache_sel.idx];
                     next_block1_data2 = block1_data2[dcache_sel.idx];
                     next_block2_data1 = block2_data2[dcache_sel.idx];
-                    next_block2_data2 = ccif.dload;
+		    if (dcif.dmemWEN && (dcache_sel.blkoff == 1'b1)) begin
+		       next_block2_data2 = dcif.dmemstore;
+		    end else begin
+                      next_block2_data2 = ccif.dload;
+		    end
 
                     next_block1_tag = block1_tag[dcache_sel.idx];
                     next_block2_tag = dcache_sel.tag;
@@ -433,8 +455,8 @@ module dcache (
                 end else begin
                     ccif.dWEN = 0;
                 end
-                ccif.dstore = block1_data2[flush_idx_count_next];
-                ccif.daddr = {block1_tag[flush_idx_count_next], flush_idx_count_next, 1'b1, 2'b00};
+                ccif.dstore = block1_data2[flush_idx_count];
+                ccif.daddr = {block1_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
 
                 next_block1_data1 = block1_data1[dcache_sel.idx];
                 next_block1_data2 = block1_data2[dcache_sel.idx];
@@ -450,7 +472,7 @@ module dcache (
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
-                flush_idx_count_next = flush_idx_count + 3'd1;
+                //flush_idx_count_next = flush_idx_count + 3'd1;
             end
 
             FLUSHB2W1: begin
@@ -485,8 +507,8 @@ module dcache (
                 end else begin
                     ccif.dWEN = 0;
                 end
-                ccif.dstore = block2_data2[flush_idx_count_next];
-                ccif.daddr = {block2_tag[flush_idx_count_next], flush_idx_count_next, 1'b1, 2'b00};
+                ccif.dstore = block2_data2[flush_idx_count];
+                ccif.daddr = {block2_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
 
                 next_block1_data1 = block1_data1[dcache_sel.idx];
                 next_block1_data2 = block1_data2[dcache_sel.idx];
@@ -502,7 +524,7 @@ module dcache (
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
-                flush_idx_count_next = flush_idx_count + 3'd1;
+                
             end
 
             FLUSHW_HIT: begin
@@ -548,7 +570,8 @@ module dcache (
     //assign dcif.dmemload
     always_comb begin
         dcif.dmemload = block1_data1[dcache_sel.idx];
-        if (hit && (dcif.dmemREN || dcif.dmemWEN)&& (block2_tag[dcache_sel.idx] == dcache_sel.tag)) begin
+        //if (hit && (dcif.dmemREN || dcif.dmemWEN)&& (block2_tag[dcache_sel.idx] == dcache_sel.tag)) begin
+	if ((block2_tag[dcache_sel.idx] == dcache_sel.tag)) begin
             if (dcache_sel.blkoff == 1'b1) begin
                 dcif.dmemload = block2_data2[dcache_sel.idx];
             end else begin

@@ -50,36 +50,8 @@ module idex
 	 
       end // if (!nRST)
       else begin
-	 if (!ide.flush) begin
-	    ide.npc_o <= ide.npc_i;
-	    ide.braPC_o <= ide.braPC_i;
-	    ide.Jaddr_o <= ide.Jaddr_i;
-	    ide.rdat1_o <= ide.rdat1_i;
-	    ide.rdat2_o <= ide.rdat2_i;
-	    ide.extout_o <= ide.extout_i;
-	    ide.Mem_o <= ide.Mem_i;
-	    ide.ALUsource_o <= ide.ALUsource_i;
-	    ide.Branch_o <= ide.Branch_i;
-	    ide.DRen_o <= ide.DRen_i;
-	    ide.lui_o <= ide.lui_i;
-	    ide.jr_o <= ide.jr_i;
-	    ide.BNE_o <= ide.BNE_i;
-	    ide.DWen_o <= ide.DWen_i;
-	    ide.ALUop_o <= ide.ALUop_i;
-	    ide.RegW_o <= ide.RegW_i;
-	    ide.RegDest_o <= ide.RegDest_i;
-	    ide.halt_o <= ide.halt_i;
-	    ide.opcode_o <= ide.opcode_i;
-	    ide.funct_o <= ide.funct_i;
-	    ide.jump_o <= ide.jump_i;
-	    ide.rs_o <= ide.rs_i;
-	    ide.rd_o <= ide.rd_i;
-	    ide.rt_o <= ide.rt_i;
-	    ide.shamt_o <= ide.shamt_i;
-	    ide.dload_o <= ide.dload_i;
-	    ide.target_o <= ide.target_i;
-	 end // if (!ide.flush)
-	 else begin
+	 if (ide.flush) begin
+	    
 	    ide.npc_o <= 0;
 	    ide.braPC_o <= 0;
 	    ide.Jaddr_o <= 0;
@@ -107,6 +79,37 @@ module idex
 	    ide.shamt_o <= 0;
 	    ide.dload_o <= 0;
 	    ide.target_o <= 0;
+	 end // if (!ide.flush)
+        
+	 
+	 else begin
+	    ide.npc_o <= ide.npc_i;
+	    ide.braPC_o <= ide.braPC_i;
+	    ide.Jaddr_o <= ide.Jaddr_i;
+	    ide.rdat1_o <= ide.rdat1_i;
+	    ide.rdat2_o <= ide.rdat2_i;
+	    ide.extout_o <= ide.extout_i;
+	    ide.Mem_o <= ide.Mem_i;
+	    ide.ALUsource_o <= ide.ALUsource_i;
+	    ide.Branch_o <= ide.Branch_i;
+	    ide.DRen_o <= ide.DRen_i;
+	    ide.lui_o <= ide.lui_i;
+	    ide.jr_o <= ide.jr_i;
+	    ide.BNE_o <= ide.BNE_i;
+	    ide.DWen_o <= ide.DWen_i;
+	    ide.ALUop_o <= ide.ALUop_i;
+	    ide.RegW_o <= ide.RegW_i;
+	    ide.RegDest_o <= ide.RegDest_i;
+	    ide.halt_o <= ide.halt_i;
+	    ide.opcode_o <= ide.opcode_i;
+	    ide.funct_o <= ide.funct_i;
+	    ide.jump_o <= ide.jump_i;
+	    ide.rs_o <= ide.rs_i;
+	    ide.rd_o <= ide.rd_i;
+	    ide.rt_o <= ide.rt_i;
+	    ide.shamt_o <= ide.shamt_i;
+	    ide.dload_o <= ide.dload_i;
+	    ide.target_o <= ide.target_i;
 	 end
       end // else: !if(!nRST)
    end // always_ff @

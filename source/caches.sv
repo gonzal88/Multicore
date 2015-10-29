@@ -30,9 +30,9 @@ module caches (
   icache  ICACHE(CLK, nRST, dcif, ccif);
   // dcache
   dcache  DCACHE(CLK, nRST, dcif, ccif);
-
-  // single cycle instr saver (for memory ops)
 /*
+  // single cycle instr saver (for memory ops)
+
   // dcache invalidate before halt
   assign dcif.flushed = dcif.halt;
 
