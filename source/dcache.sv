@@ -284,7 +284,7 @@ module dcache (
                     next_block2_data1 = block2_data1[dcache_sel.idx];
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
-                    next_block1_tag = block1_tag[dcache_sel.idx];
+                   next_block1_tag = dcache_sel.tag;//block1_tag[dcache_sel.idx];
                     next_block2_tag = block2_tag[dcache_sel.idx];
 
                     next_block1_valid = 0;//Correct,right?  Don't want to switch to hit in the middle of block (can also just not update tag until UPDATE2. or both.)
@@ -296,7 +296,7 @@ module dcache (
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
                     next_block1_tag = block1_tag[dcache_sel.idx];
-                    next_block2_tag = block2_tag[dcache_sel.idx];
+                   next_block2_tag = dcache_sel.tag;//block2_tag[dcache_sel.idx];
 
                     next_block1_valid = block1_valid[dcache_sel.idx];
                     next_block2_valid = 0;
