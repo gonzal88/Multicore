@@ -82,7 +82,7 @@ module idex
 	 end // if (!ide.flush)
         
 	 
-	 else begin
+	 else if (ide.enable) begin
 	    ide.npc_o <= ide.npc_i;
 	    ide.braPC_o <= ide.braPC_i;
 	    ide.Jaddr_o <= ide.Jaddr_i;
@@ -110,6 +110,35 @@ module idex
 	    ide.shamt_o <= ide.shamt_i;
 	    ide.dload_o <= ide.dload_i;
 	    ide.target_o <= ide.target_i;
+	 end // if (ide.enable)
+	 else begin
+	    ide.npc_o <= ide.npc_o;
+	    ide.braPC_o <= ide.braPC_o;
+	    ide.Jaddr_o <= ide.Jaddr_o;
+	    ide.rdat1_o <= ide.rdat1_o;
+	    ide.rdat2_o <= ide.rdat2_o;
+	    ide.extout_o <= ide.extout_o;
+	    ide.Mem_o <= ide.Mem_o;
+	    ide.ALUsource_o <= ide.ALUsource_o;
+	    ide.Branch_o <= ide.Branch_o;
+	    ide.DRen_o <= ide.DRen_o;
+	    ide.lui_o <= ide.lui_o;
+	    ide.jr_o <= ide.jr_o;
+	    ide.BNE_o <= ide.BNE_o;
+	    ide.DWen_o <= ide.DWen_o;
+	    ide.ALUop_o <= ide.ALUop_o;
+	    ide.RegW_o <= ide.RegW_o;
+	    ide.RegDest_o <= ide.RegDest_o;
+	    ide.halt_o <= ide.halt_o;
+	    ide.opcode_o <= ide.opcode_o;
+	    ide.funct_o <= ide.funct_o;
+	    ide.jump_o <= ide.jump_o;
+	    ide.rs_o <= ide.rs_o;
+	    ide.rd_o <= ide.rd_o;
+	    ide.rt_o <= ide.rt_o;
+	    ide.shamt_o <= ide.shamt_o;
+	    ide.dload_o <= ide.dload_o;
+	    ide.target_o <= ide.target_o;
 	 end
       end // else: !if(!nRST)
    end // always_ff @

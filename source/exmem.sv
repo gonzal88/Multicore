@@ -32,7 +32,7 @@ module exmem
 	 exme.DWen_o <= 0;
 	 exme.RegW_o <= 0;
 	 exme.RegDest_o <= 0;
-	 exme.halt_o <= 0;
+	 exme.halt_o <= exme.halt_i;
 	 exme.opcode_o <= RTYPE;
 	 exme.funct_o <= exme.funct_i;
 	 exme.ALUsource_o <= 0;

@@ -77,11 +77,19 @@ module datapath (
    assign rtype = r_t'(ifid.iload_o);
    assign jtype = j_t'(ifid.iload_o);
    assign itype = i_t'(ifid.iload_o);
-   
-   assign ifid.iload_i = dpif.dhit && !hazard_enable ? 0: dpif.imemload;
 
+   /*
+   always_comb begin
+      if(dpif.imemload == 0 || dpif.ihit == 0) begin
+	 ifid.iload_i = ifid.iload_i;
+      end
+      else begin
+	 ifid.iload_i = dpif.dhit && !hazard_enable ? 0: dpif.imemload;
+      end
+   end
+*/
+   assign  ifid.iload_i = dpif.dhit && !hazard_enable ? 0: dpif.imemload;
    
-
    always_comb begin
       if((cuif.jump || cuif.jr) && !(branch_out && (idex.opcode_o == BEQ || idex.opcode_o == BNE))) begin
 	 next_PC = (rtype.opcode == RTYPE && rtype.funct == JR) ? rfif.rdat1 : ((itype.opcode == J || itype.opcode == JAL) ? {npc[31:28], jtype.addr, 2'b0} : npc);
@@ -97,7 +105,7 @@ module datapath (
 
    
    
-   assign ifid.iien = !hazard_enable;
+   assign ifid.iien = !hazard_enable && (dpif.ihit || dpif.dhit);
    assign ifid.flush = cuif.jump || branch_out || cuif.jr;
    assign ifid.npc_i = npc;
    assign ifid.dload_i = dpif.dmemload;
@@ -157,11 +165,9 @@ module datapath (
    assign idex.rt_i = rtype.rt;
    assign idex.shamt_i = rtype.shamt;
    assign idex.dload_i = ifid.dload_o;
-   
-   assign idex.flush = ((ifid.iload_o == 0) || hazard_enable || branch_out) && !cuif.halt;
-// || ifid.dload_o == 32'hBAD1BAD1;//
-   
-   
+   assign idex.enable = (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : dpif.ihit; 
+   assign idex.flush = (hazard_enable || branch_out) && !cuif.halt;
+   //assign idex.flush = ((ifid.iload_o == 0) || hazard_enable || branch_out) && !cuif.halt;
    
    
    always_comb begin
@@ -222,10 +228,27 @@ module datapath (
    assign exme.ALUsource_i = exme.ALUsource_o;
    assign exme.rt_i = idex.rt_o;
    assign exme.dload_i = idex.dload_o;
-   assign exme.enable = !idex.halt_o && (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : 1'b1;//dpif.ihit || dpif.dhit;
+   assign exme.enable = (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : dpif.ihit;
    assign exme.target_i = idex.target_o;
    
 
+
+   //enable signals
+   /*
+   always_comb begin
+      exme.enable = 1'b1;
+      mem.enable = 1'b1;
+      if (exme.opcode_o == LW || exme.opcode_o == SW) begin
+	 exme.enable = dpif.dhit;//dpif.ihit || dpif.dhit;
+	 mem.enable = dpif.dhit;
+      end
+      else begin
+	 exme.enable = 1'b1;
+	 mem.enable = 1'b1;
+      end
+   end
+*/
+   
    always_comb begin
       if(idex.lui_o == 1'b1) begin
 	 Mux_lui = 0;
@@ -254,7 +277,7 @@ module datapath (
    assign dpif.dmemWEN = exme.DWen_o;
    assign mem.dload_i = dpif.dmemload;
    assign mem.ALUsource_i = exme.ALUsource_o;
-   assign mem.enable = !exme.halt_o && (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : 1'b1;
+   assign mem.enable = (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : dpif.ihit;
    assign mem.target_i = exme.target_o;
    
    
@@ -318,7 +341,7 @@ module datapath (
       
       
       
-      if(idex.opcode_o == HALT || exme.opcode_o == HALT || mem.opcode_o == HALT) begin
+      if(idex.halt_o || exme.halt_o || mem.halt_o) begin
 	 memfwA = 0;
 	 memfwB = 0;
 	 wbfwA = 0;

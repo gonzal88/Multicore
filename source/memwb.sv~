@@ -9,67 +9,67 @@
 `include "memwb_if.vh"
 
 module memwb
-(
-	input logic CLK,
-	input logic nRST,
-	memwb_if.mw mwif
-	);
-
-	import cpu_types_pkg::*;
-
-	always_ff @(posedge CLK, negedge nRST) begin
-		if (!nRST) begin
-		   mwif.npc_o <= 0;
-		   mwif.Jaddr_o <= 0;
-		   mwif.aluout_o <= 0;
-		   mwif.extout_o <= 0;
-		   mwif.MemtoReg_o <= 0;
-		   mwif.dload_o <= 0;
-		   mwif.halt_o <= 0;
-		   mwif.RegWrite_o <= 0;
-		   mwif.RegDst_o <= 0;
-		   mwif.halt_o <= 0;
-		   mwif.Rd_o <= 0;
-		   mwif.Rt_o <= 0;
-		   mwif.opcode_o <= RTYPE;
-		   mwif.ALUSrc_o <= 0;
-		   
-		end
-		
-		else begin
-			if (mwif.mwen) begin
-		   	   mwif.npc_o <= mwif.npc_i;
-		   	   mwif.Jaddr_o <= mwif.Jaddr_i;
-		   	   mwif.aluout_o <= mwif.aluout_i;
-		   	   mwif.extout_o <= mwif.extout_i;
-		   	   mwif.MemtoReg_o <= mwif.MemtoReg_i;
-		   	   mwif.dload_o <= mwif.dload_i;
-		   	   mwif.halt_o <= mwif.halt_i;
-		   	   mwif.RegWrite_o <= mwif.RegWrite_i;
-		   	   mwif.RegDst_o <= mwif.RegDst_i;
-		   	   mwif.halt_o <= mwif.halt_i;
-		   	   mwif.Rd_o <= mwif.Rd_i;
-		   	   mwif.Rt_o <= mwif.Rt_i;
-			   mwif.opcode_o <= mwif.opcode_i;
-			   mwif.ALUSrc_o <= mwif.ALUSrc_i;
-		   	end
-		   	else begin
-		   	   mwif.npc_o <= 0;
-			   mwif.Jaddr_o <= 0;
-			   mwif.aluout_o <= 0;
-			   mwif.extout_o <= 0;
-			   mwif.MemtoReg_o <= 0;
-			   mwif.dload_o <= 0;
-			   mwif.halt_o <= 0;
-			   mwif.RegWrite_o <= 0;
-			   mwif.RegDst_o <= 0;
-			   mwif.halt_o <= mwif.halt_i;
-			   mwif.Rd_o <= 0;
-			   mwif.Rt_o <= 0;
-			   mwif.opcode_o <= RTYPE;
-			   mwif.ALUSrc_o <= 0;
-			end
-		end
-	end
+  (
+   input logic CLK,
+   input logic nRST,
+   memwb_if.me mwif
+   );
+   
+   import cpu_types_pkg::*;
+   
+   always_ff @(posedge CLK, negedge nRST) begin
+      if (!nRST) begin
+	 mwif.npc_o <= 0;
+	 mwif.Addr_o <= 0;
+	 mwif.Mem_o <= 0;
+	 mwif.RegW_o <= 0;
+	 mwif.RegDest_o <= 0;
+	 mwif.halt_o <= 0;
+	 mwif.alu_out_o <= 0;
+	 mwif.opcode_o <= RTYPE;
+	 mwif.rs_o <= 0;
+	 mwif.rd_o <= 0;
+	 mwif.rt_o <= 0;
+	 mwif.dload_o <= 0;
+	 mwif.target_o <= 0;
+	 mwif.ALUsource_o <= 0;
+	 	 
+      end
+      
+      else begin
+	 if (mwif.enable) begin
+	    mwif.npc_o <= mwif.npc_i;
+	    mwif.Addr_o <= mwif.Addr_i;
+	    mwif.Mem_o <= mwif.Mem_i;
+	    mwif.RegW_o <= mwif.RegW_i;
+	    mwif.RegDest_o <= mwif.RegDest_i;
+	    mwif.halt_o <= mwif.halt_i;
+	    mwif.alu_out_o <= mwif.alu_out_i;
+	    mwif.opcode_o <= mwif.opcode_i;
+	    mwif.rs_o <= mwif.rs_i;
+	    mwif.rd_o <= mwif.rd_i;
+	    mwif.rt_o <= mwif.rt_i;
+	    mwif.dload_o <= mwif.dload_i;
+            mwif.target_o <= mwif.target_i;
+	    mwif.ALUsource_o <= mwif.ALUsource_i;
+	 end // if (mwif.enable)
+	 else begin
+	    mwif.npc_o <= mwif.npc_o;
+	    mwif.Addr_o <= mwif.Addr_o;
+	    mwif.Mem_o <= mwif.Mem_o;
+	    mwif.RegW_o <= mwif.RegW_o;
+	    mwif.RegDest_o <= mwif.RegDest_o;
+	    mwif.halt_o <= mwif.halt_i;
+	    mwif.alu_out_o <= mwif.alu_out_o;
+	    mwif.opcode_o <= mwif.opcode_o;
+	    mwif.rs_o <= mwif.rs_o;
+	    mwif.rd_o <= mwif.rd_o;
+	    mwif.rt_o <= mwif.rt_o;
+	    mwif.dload_o <= mwif.dload_o;
+            mwif.target_o <= mwif.target_o;
+	    mwif.ALUsource_o <= mwif.ALUsource_o;
+	 end
+      end
+   end
 
 endmodule
