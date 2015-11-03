@@ -1,0 +1,73 @@
+# //  Questa Sim-64
+# //  Version 10.3b linux_x86_64 May 29 2014
+# //
+# //  Copyright 1991-2014 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  THIS WORK CONTAINS TRADE SECRET AND PROPRIETARY INFORMATION
+# //  WHICH IS THE PROPERTY OF MENTOR GRAPHICS CORPORATION OR ITS
+# //  LICENSORS AND IS SUBJECT TO LICENSE TERMS.
+# //
+# vsim -do "view objects; do scripts/system.do; run -all;" -onfinish stop -L altera_mf_ver -L altera_ver -L cycloneive_ver -wlf system_tb.wlf work.system_tb 
+# Start time: 13:38:22 on Oct 30,2015
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.system_tb
+# Loading work.cpu_types_pkg
+# Loading work.system_if
+# Loading work.test
+# Loading work.system
+# Loading work.cpu_ram_if
+# Loading work.pipeline
+# Loading work.datapath_cache_if
+# Loading work.cache_control_if
+# Loading work.datapath
+# Loading work.control_unit_if
+# Loading work.register_file_if
+# Loading work.alu_if
+# Loading work.program_counter_if
+# Loading work.extender_if
+# Loading work.ifid_if
+# Loading work.idex_if
+# Loading work.exmem_if
+# Loading work.memwb_if
+# Loading work.register_file
+# Loading work.alu
+# Loading work.control_unit
+# Loading work.program_counter
+# Loading work.extender
+# Loading work.ifid
+# Loading work.idex
+# Loading work.exmem
+# Loading work.memwb
+# Loading work.caches
+# Loading work.icache
+# Loading work.dcache
+# Loading work.memory_control
+# Loading work.ram
+# Loading altera_mf_ver.altsyncram
+# Loading altera_mf_ver.altsyncram_body
+# Loading altera_mf_ver.ALTERA_DEVICE_FAMILIES
+# Loading altera_mf_ver.ALTERA_MF_MEMORY_INITIALIZATION
+# view objects
+# .main_pane.objects.interior.cs.body.tree
+#  do scripts/system.do
+# ** Error: Unable to lock WLF file "system_tb.wlf". Retrying 1 times, errno 11
+# ** Error: Unable to lock WLF file "system_tb.wlf". Retrying 2 times, errno 11
+# ** Error: Unable to lock WLF file "system_tb.wlf". Retrying 3 times, errno 11
+# ** Error: Cannot lock WLF file: "system_tb.wlf"
+#           errno 11: Resource temporarily unavailable.
+# ** Warning: (vsim-WLF-5000) WLF file currently in use: system_tb.wlf
+#           File in use by: mg221  Hostname: cparch16.ecn.purdue.edu  ProcessID: 10156
+#           Attempting to use alternate WLF file "./wlftmojL6K".
+# ** Warning: (vsim-WLF-5001) Could not open WLF file: system_tb.wlf
+#           Using alternate file: ./wlftmojL6K
+#  run -all
+# Starting Processor.
+# Halted at 3880 time and ran for        193 cycles.
+# Starting memory dump.
+# Finished memory dump.
+# Break in Module test at testbench/system_tb.sv line 80
+# 
+# End time: 13:43:42 on Oct 30,2015, Elapsed time: 0:05:20
+# Errors: 4, Warnings: 3
