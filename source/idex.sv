@@ -51,7 +51,6 @@ module idex
       end // if (!nRST)
       else begin
 	 if (ide.flush) begin
-	    
 	    ide.npc_o <= 0;
 	    ide.braPC_o <= 0;
 	    ide.Jaddr_o <= 0;
@@ -80,8 +79,6 @@ module idex
 	    ide.dload_o <= 0;
 	    ide.target_o <= 0;
 	 end // if (!ide.flush)
-        
-	 
 	 else if (ide.enable) begin
 	    ide.npc_o <= ide.npc_i;
 	    ide.braPC_o <= ide.braPC_i;

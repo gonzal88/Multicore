@@ -78,17 +78,7 @@ module datapath (
    assign jtype = j_t'(ifid.iload_o);
    assign itype = i_t'(ifid.iload_o);
 
-   /*
-   always_comb begin
-      if(dpif.imemload == 0 || dpif.ihit == 0) begin
-	 ifid.iload_i = ifid.iload_i;
-      end
-      else begin
-	 ifid.iload_i = dpif.dhit && !hazard_enable ? 0: dpif.imemload;
-      end
-   end
-*/
-   assign  ifid.iload_i = dpif.dhit && !hazard_enable ? 0: dpif.imemload;
+   assign  ifid.iload_i = dpif.imemload;
    
    always_comb begin
       if((cuif.jump || cuif.jr) && !(branch_out && (idex.opcode_o == BEQ || idex.opcode_o == BNE))) begin
@@ -105,11 +95,14 @@ module datapath (
 
    
    
-   assign ifid.iien = !hazard_enable && (dpif.ihit || dpif.dhit);
-   assign ifid.flush = cuif.jump || branch_out || cuif.jr;
+   assign ifid.iien = !hazard_enable ? dpif.ihit: dpif.dhit;
+   //assign ifid.iien = (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : dpif.ihit;
+   
+   assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit : dpif.dhit;
    assign ifid.npc_i = npc;
    assign ifid.dload_i = dpif.dmemload;
-   assign pcif.PCen = ((dpif.ihit && !dpif.dhit) || branch_out || cuif.jump || cuif.jr) && !hazard_enable;
+   assign pcif.PCen = (dpif.ihit || branch_out) && !hazard_enable;
+   
    assign dpif.imemaddr = pcif.PCcurr;
    assign pcif.PCnext = next_PC;
    //assign dpif.halt = mem.halt_o;
@@ -166,8 +159,8 @@ module datapath (
    assign idex.shamt_i = rtype.shamt;
    assign idex.dload_i = ifid.dload_o;
    assign idex.enable = (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : dpif.ihit; 
-   assign idex.flush = (hazard_enable || branch_out) && !cuif.halt;
-   //assign idex.flush = ((ifid.iload_o == 0) || hazard_enable || branch_out) && !cuif.halt;
+   //assign idex.flush = (hazard_enable);
+   assign idex.flush = (hazard_enable || branch_out) && (dpif.ihit && !dpif.dhit);
    
    
    always_comb begin
@@ -220,12 +213,12 @@ module datapath (
    assign exme.DRen_i = idex.DRen_o;
    assign exme.Branch_i = idex.Branch_o;
    assign exme.Mem_i = idex.Mem_o;
-   assign exme.Jaddr_i = idex.Jaddr_o;
+   //assign exme.Jaddr_i = idex.Jaddr_o;
    assign exme.npc_i = idex.npc_o;
    assign exme.extout_i = {idex.extout_o, 2'b00} + idex.npc_o;
    assign exme.rs_i = idex.rs_o;
    assign exme.rd_i = idex.rd_o;
-   assign exme.ALUsource_i = exme.ALUsource_o;
+   assign exme.ALUsource_i = idex.ALUsource_o;
    assign exme.rt_i = idex.rt_o;
    assign exme.dload_i = idex.dload_o;
    assign exme.enable = (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : dpif.ihit;
@@ -279,6 +272,8 @@ module datapath (
    assign mem.ALUsource_i = exme.ALUsource_o;
    assign mem.enable = (exme.opcode_o == LW || exme.opcode_o == SW) ? dpif.dhit : dpif.ihit;
    assign mem.target_i = exme.target_o;
+   assign mem.Addr_i = exme.Jaddr_o;
+   
    
    
    
@@ -304,13 +299,13 @@ module datapath (
 	 Baddr = npc;
       end
       else begin
-	 Baddr = idex.extout_o;
+	 Baddr = exme.extout_o;
       end
    end
 
    always_comb begin
-      if(exme.jump_o == 1'b1) begin
-	 jump_out = exme.Jaddr_o;
+      if(idex.jump_o == 1'b1) begin
+	 jump_out = idex.Jaddr_o;
       end
       else begin
 	 jump_out = Baddr;
@@ -318,11 +313,11 @@ module datapath (
    end
 
    always_comb begin
-      if(exme.jr_o == 1'b0) begin
-	 mem.Addr_i = jump_out;
+      if(idex.jr_o == 1'b0) begin
+	 exme.Jaddr_i = jump_out;
       end
       else begin
-	 mem.Addr_i = exme.rdat1_o;
+	 exme.Jaddr_i = idex.rdat1_o;
       end
    end
 
