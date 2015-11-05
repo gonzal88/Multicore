@@ -351,7 +351,7 @@ module dcache (
                 end else begin // else if block 1 used most recently, evict block 2
                     next_block1_data1 = block1_data1[dcache_sel.idx];
                     next_block1_data2 = block1_data2[dcache_sel.idx];
-                    next_block2_data1 = block2_data2[dcache_sel.idx];
+                    next_block2_data1 = block2_data1[dcache_sel.idx];
 		    if (dcif.dmemWEN && (dcache_sel.blkoff == 1'b1)) begin
 		       next_block2_data2 = dcif.dmemstore;
 		    end else begin
