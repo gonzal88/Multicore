@@ -98,10 +98,12 @@ module dcache (
         casez (curr_state)
 	  
 	      IDLE: begin
-                if (!hit && (dcif.dmemWEN || dcif.dmemREN) && !(block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and not dirty
+                if (!hit && (dcif.dmemWEN) && !((block1_dirty[dcache_sel.idx] && !recent_block[dcache_sel.idx]) || (block2_dirty[dcache_sel.idx] && recent_block[dcache_sel.idx]))) begin //miss and not dirty
+		//if (!hit && (dcif.dmemWEN || dcif.dmemREN) && !(block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and not dirty
                    hit_counter_next = hit_counter - 1;
                     next_state =  UPDATE1;
-                end else if (!hit && (dcif.dmemWEN || dcif.dmemREN) && (block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and dirty
+                end else if (!hit && (dcif.dmemREN) && (block1_dirty[dcache_sel.idx]  || block2_dirty[dcache_sel.idx] )) begin //miss and dirty
+		//end else if (!hit && (dcif.dmemWEN || dcif.dmemREN) && (block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and dirty
                    hit_counter_next = hit_counter - 1;
                     next_state = WB1;
                 end else if (dcif.halt) begin
