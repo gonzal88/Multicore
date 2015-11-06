@@ -24,7 +24,8 @@ module dcache (
     StateType curr_state;
     StateType next_state;
 
-    dcachef_t dcache_sel;
+   dcachef_t dcache_sel;
+//, next_dcache_sel;
 
     word_t block1_data1 [7:0], block1_data2 [7:0], block2_data1 [7:0], block2_data2 [7:0];
     word_t next_block1_data1, next_block1_data2, next_block2_data1, next_block2_data2;
@@ -58,7 +59,7 @@ module dcache (
    assign hit = hit1 || hit2;
    
    assign hit2 = ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx]) ? 1'b1 : 1'b0;
-
+   
     always_ff @(posedge CLK or negedge nRST) begin
         if (!nRST) begin
             curr_state <= IDLE;
@@ -73,6 +74,7 @@ module dcache (
             block1_dirty <= '{default:1'b0};
             block2_dirty <= '{default:1'b0};
             recent_block <= '{default:1'b1};
+	    //dcache_sel <= 0;
             hit_counter <= 32'b0;
             flush_idx_count <= 3'd0;
         end else begin
@@ -88,6 +90,7 @@ module dcache (
             block1_dirty[dcache_sel.idx] <= next_block1_dirty;
             block2_dirty[dcache_sel.idx] <= next_block2_dirty;
             recent_block[dcache_sel.idx] <= next_recent_block;
+	    //dcache_sel <= next_dcache_sel;
             hit_counter <= hit_counter_next;
             flush_idx_count <= flush_idx_count_next;
         end
@@ -98,15 +101,20 @@ module dcache (
         casez (curr_state)
 	  
 	      IDLE: begin
-                if (!hit && (dcif.dmemWEN || dcif.dmemREN) && !(block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and not dirty
-                   hit_counter_next = hit_counter - 1;
+                //if (!hit && (dcif.dmemWEN) && !((block1_dirty[dcache_sel.idx] && !recent_block[dcache_sel.idx]) || (block2_dirty[dcache_sel.idx] && recent_block[dcache_sel.idx]))) begin //miss and not dirty
+		if (!hit && (dcif.dmemWEN || dcif.dmemREN) && !(block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and not dirty
+                   hit_counter_next = hit_counter ;
                     next_state =  UPDATE1;
-                end else if (!hit && (dcif.dmemWEN || dcif.dmemREN) && (block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and dirty
-                   hit_counter_next = hit_counter - 1;
+		    //next_dcache_sel = dcachef_t'(dcif.dmemaddr);
+                //end else if (!hit && (dcif.dmemREN) && (block1_dirty[dcache_sel.idx]  || block2_dirty[dcache_sel.idx] )) begin //miss and dirty
+		end else if (!hit && (dcif.dmemWEN || dcif.dmemREN) && (block1_dirty[dcache_sel.idx] || block2_dirty[dcache_sel.idx])) begin //miss and dirty
+                   hit_counter_next = hit_counter ;
                     next_state = WB1;
+		   //next_dcache_sel = dcachef_t'(dcif.dmemaddr);
                 end else if (dcif.halt) begin
                     hit_counter_next = hit_counter;
                     next_state = FLUSHB1W1;
+		    //next_dcache_sel = dcache_sel;
                 end else begin
                     if (hit && (dcif.dmemWEN || dcif.dmemREN)) begin
                         hit_counter_next = hit_counter + 1; // how to increment only on an initial hit? we can always increment in idle but decrement if we miss. but then the count maybe inflated if the data request doesn't change
@@ -114,6 +122,7 @@ module dcache (
                         hit_counter_next = hit_counter;
                     end
                     next_state = IDLE;
+		   //next_dcache_sel = dcachef_t'(dcif.dmemaddr);
                 end
             end
 
@@ -239,7 +248,7 @@ module dcache (
 
                 next_block1_valid = block1_valid[dcache_sel.idx];
                 next_block2_valid = block2_valid[dcache_sel.idx];
-
+	        
                 //flush_idx_count_next = flush_idx_count;
 
                 if (dcif.dmemWEN && ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx])) begin //block 1 hit
@@ -301,11 +310,13 @@ module dcache (
                     next_block2_data1 = block2_data1[dcache_sel.idx];
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
-                   next_block1_tag = block1_tag[dcache_sel.idx];
+                   next_block1_tag = dcache_sel.tag;
+//block1_tag[dcache_sel.idx];
                     next_block2_tag = block2_tag[dcache_sel.idx];
 
-                    next_block1_valid = 0;//Correct,right?  Don't want to switch to hit in the middle of block (can also just not update tag until UPDATE2. or both.)
-                    next_block2_valid = block2_valid[dcache_sel.idx];
+                   next_block1_valid = 1;
+//0;//Correct,right?  Don't want to switch to hit in the middle of block (can also just not update tag until UPDATE2. or both.)
+                   next_block2_valid = block2_valid[dcache_sel.idx];
                 end else begin // else if block 1 used most recently evict block 2
                     next_block1_data1 = block1_data1[dcache_sel.idx];
                     next_block1_data2 = block1_data2[dcache_sel.idx];
@@ -317,10 +328,12 @@ module dcache (
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
                     next_block1_tag = block1_tag[dcache_sel.idx];
-                   next_block2_tag = block2_tag[dcache_sel.idx];
+                   next_block2_tag = dcache_sel.tag;
+//block2_tag[dcache_sel.idx];
 
-                    next_block1_valid = block1_valid[dcache_sel.idx];
-                    next_block2_valid = 0;
+                   next_block1_valid = block1_valid[dcache_sel.idx];
+                   next_block2_valid = 1;
+//0;
                 end     
 
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
@@ -343,10 +356,12 @@ module dcache (
                     next_block2_data1 = block2_data1[dcache_sel.idx];
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
-                    next_block1_tag = dcache_sel.tag;
+                   next_block1_tag = block1_tag[dcache_sel.idx];
+//dcache_sel.tag;
                     next_block2_tag = block2_tag[dcache_sel.idx];
 
-                    next_block1_valid = 1;
+                   next_block1_valid = 1;
+//1;
                     next_block2_valid = block2_valid[dcache_sel.idx];
                 end else begin // else if block 1 used most recently, evict block 2
                     next_block1_data1 = block1_data1[dcache_sel.idx];
@@ -359,10 +374,12 @@ module dcache (
 		    end
 
                     next_block1_tag = block1_tag[dcache_sel.idx];
-                    next_block2_tag = dcache_sel.tag;
+                   next_block2_tag = block2_tag[dcache_sel.idx];
+//dcache_sel.tag;
 
                     next_block1_valid = block1_valid[dcache_sel.idx];
-                    next_block2_valid = 1;
+                   next_block2_valid = 1;
+//1;
                 end     
 
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
@@ -425,7 +442,112 @@ module dcache (
 
             FLUSHB1W1: begin
                 ccif.dREN = 0;
-                if (block1_valid[dcache_sel.idx]) begin
+                if (block1_valid[flush_idx_count]) begin
+                    ccif.dWEN = 1;
+                end else begin
+                    ccif.dWEN = 0;
+                end
+                ccif.dstore = block1_data1[flush_idx_count];
+                ccif.daddr = {block1_tag[flush_idx_count], flush_idx_count, 1'b0, 2'b00};
+
+                next_block1_data1 = block1_data1[flush_idx_count];
+                next_block1_data2 = block1_data2[flush_idx_count];
+                next_block2_data1 = block2_data1[flush_idx_count];
+                next_block2_data2 = block2_data2[flush_idx_count];
+
+                next_block1_tag = block1_tag[flush_idx_count];
+                next_block2_tag = block2_tag[flush_idx_count];
+
+                next_block1_valid = block1_valid[flush_idx_count];
+                next_block2_valid = block2_valid[flush_idx_count];
+
+                next_block1_dirty = block1_dirty[flush_idx_count];
+                next_block2_dirty = block2_dirty[flush_idx_count];                
+            end
+
+            FLUSHB1W2: begin
+                ccif.dREN = 0;
+                if (block1_valid[flush_idx_count]) begin
+                    ccif.dWEN = 1;
+                end else begin
+                    ccif.dWEN = 0;
+                end
+                ccif.dstore = block1_data2[flush_idx_count];
+                ccif.daddr = {block1_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
+
+                next_block1_data1 = block1_data1[flush_idx_count];
+                next_block1_data2 = block1_data2[flush_idx_count];
+                next_block2_data1 = block2_data1[flush_idx_count];
+                next_block2_data2 = block2_data2[flush_idx_count];
+
+                next_block1_tag = block1_tag[flush_idx_count];
+                next_block2_tag = block2_tag[flush_idx_count];
+
+                next_block1_valid = 0;
+                next_block2_valid = block2_valid[flush_idx_count];
+
+                next_block1_dirty = block1_dirty[flush_idx_count];
+                next_block2_dirty = block2_dirty[flush_idx_count]; 
+
+                //flush_idx_count_next = flush_idx_count + 3'd1;
+            end
+
+            FLUSHB2W1: begin
+                ccif.dREN = 0;
+                if (block2_valid[flush_idx_count]) begin
+                    ccif.dWEN = 1;
+                end else begin
+                    ccif.dWEN = 0;
+                end
+                ccif.dstore = block2_data1[flush_idx_count];
+                ccif.daddr = {block2_tag[flush_idx_count], flush_idx_count, 1'b0, 2'b00};
+
+                next_block1_data1 = block1_data1[flush_idx_count];
+                next_block1_data2 = block1_data2[flush_idx_count];
+                next_block2_data1 = block2_data1[flush_idx_count];
+                next_block2_data2 = block2_data2[flush_idx_count];
+
+                next_block1_tag = block1_tag[flush_idx_count];
+                next_block2_tag = block2_tag[flush_idx_count];
+
+                next_block1_valid = block1_valid[flush_idx_count];
+                next_block2_valid = block2_valid[flush_idx_count];
+
+                next_block1_dirty = block1_dirty[flush_idx_count];
+                next_block2_dirty = block2_dirty[flush_idx_count]; 
+            end
+
+            FLUSHB2W2: begin
+                ccif.dREN = 0;
+                if (block2_valid[flush_idx_count]) begin
+                    ccif.dWEN = 1;
+                end else begin
+                    ccif.dWEN = 0;
+                end
+                ccif.dstore = block2_data2[flush_idx_count];
+                ccif.daddr = {block2_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
+
+                next_block1_data1 = block1_data1[flush_idx_count];
+                next_block1_data2 = block1_data2[flush_idx_count];
+                next_block2_data1 = block2_data1[flush_idx_count];
+                next_block2_data2 = block2_data2[flush_idx_count];
+
+                next_block1_tag = block1_tag[flush_idx_count];
+                next_block2_tag = block2_tag[flush_idx_count];
+
+                next_block1_valid = block1_valid[flush_idx_count];
+                next_block2_valid = 0;
+
+                next_block1_dirty = block1_dirty[flush_idx_count];
+                next_block2_dirty = block2_dirty[flush_idx_count]; 
+
+                
+            end
+
+	    /*
+	     FLUSHB1W1: begin
+                ccif.dREN = 0;
+                if (block1_valid[flush_idx_count]) begin
                     ccif.dWEN = 1;
                 end else begin
                     ccif.dWEN = 0;
@@ -450,7 +572,7 @@ module dcache (
 
             FLUSHB1W2: begin
                 ccif.dREN = 0;
-                if (block1_valid[dcache_sel.idx]) begin
+                if (block1_valid[flush_idx_count]) begin
                     ccif.dWEN = 1;
                 end else begin
                     ccif.dWEN = 0;
@@ -477,7 +599,7 @@ module dcache (
 
             FLUSHB2W1: begin
                 ccif.dREN = 0;
-                if (block2_valid[dcache_sel.idx]) begin
+                if (block2_valid[flush_idx_count]) begin
                     ccif.dWEN = 1;
                 end else begin
                     ccif.dWEN = 0;
@@ -502,7 +624,7 @@ module dcache (
 
             FLUSHB2W2: begin
                 ccif.dREN = 0;
-                if (block2_valid[dcache_sel.idx]) begin
+                if (block2_valid[flush_idx_count]) begin
                     ccif.dWEN = 1;
                 end else begin
                     ccif.dWEN = 0;
@@ -526,26 +648,27 @@ module dcache (
 
                 
             end
-
+	     */
+	  
             FLUSHW_HIT: begin
                 ccif.dREN = 0;
                 ccif.dWEN = 1;
                 ccif.dstore = hit_counter;
                 ccif.daddr = 32'h3100;
 
-                next_block1_data1 = block1_data1[dcache_sel.idx];
-                next_block1_data2 = block1_data2[dcache_sel.idx];
-                next_block2_data1 = block2_data1[dcache_sel.idx];
-                next_block2_data2 = block2_data2[dcache_sel.idx];
+                next_block1_data1 = block1_data1[flush_idx_count];
+                next_block1_data2 = block1_data2[flush_idx_count];
+                next_block2_data1 = block2_data1[flush_idx_count];
+                next_block2_data2 = block2_data2[flush_idx_count];
 
-                next_block1_tag = block1_tag[dcache_sel.idx];
-                next_block2_tag = block2_tag[dcache_sel.idx];
+                next_block1_tag = block1_tag[flush_idx_count];
+                next_block2_tag = block2_tag[flush_idx_count];
 
-                next_block1_valid = block1_valid[dcache_sel.idx];
-                next_block2_valid = block2_valid[dcache_sel.idx];
+                next_block1_valid = block1_valid[flush_idx_count];
+                next_block2_valid = block2_valid[flush_idx_count];
 
-                next_block1_dirty = block1_dirty[dcache_sel.idx];
-                next_block2_dirty = block2_dirty[dcache_sel.idx];
+                next_block1_dirty = block1_dirty[flush_idx_count];
+                next_block2_dirty = block2_dirty[flush_idx_count]; 
             end
 
         endcase
