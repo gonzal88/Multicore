@@ -32,9 +32,9 @@ module caches (
   dcache  DCACHE(CLK, nRST, dcif, ccif);
 
   // single cycle instr saver (for memory ops)
-
+/*
   // dcache invalidate before halt
- /* assign dcif.flushed = dcif.halt;
+  assign dcif.flushed = dcif.halt;
 
   //singlecycle
   assign dcif.ihit = (dcif.imemREN) ? ~ccif.iwait : 0;
