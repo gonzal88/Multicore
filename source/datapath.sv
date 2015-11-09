@@ -98,7 +98,7 @@ module datapath (
    assign ifid.iien = !hazard_enable ? dpif.ihit: dpif.dhit;
    //assign ifid.iien = !hazard_enable ? dpif.ihit : 1'b0;
    
-   //assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit : 1'b0;
+   //assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit || dpif.dhit : 1'b0;
    assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit : (dpif.dhit  || mem.halt_o);
    assign ifid.npc_i = npc;
    assign ifid.dload_i = dpif.dmemload;
