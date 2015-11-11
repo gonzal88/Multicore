@@ -154,7 +154,7 @@ module coherency_controller (
             end
 
             C2C: begin
-                ccif.dload[0] = ccif.dload[1];
+                ccif.dload[0] = ccif.dstore[1];
                 ccif.dwait[1] = !(ccif.ramstate == ACCESS);
                 ccif.dwait[0] = !(ccif.ramstate == ACCESS);
                 ccif.ramaddr = ccif.daddr[1];
@@ -178,3 +178,7 @@ module coherency_controller (
         endcase
     end
 endmodule
+
+
+//cctrans is 1 when going to update 1 from IDLE and WB2
+//Use cctrans && dren on bus control?
