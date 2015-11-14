@@ -1,211 +1,227 @@
-// interface include
-`include "cache_control_if.vh"
+/*
+  Javier Gonzalez Souto && Cyrus Sutaria
+  gonzal88@purdue.edu
+  csutaria@purdue.edu 
 
-// memory types
+  Coherency testbench
+ */
+
+
+`include "cache_control_if.vh"
 `include "cpu_types_pkg.vh"
 
-//ram interface
-`include "cpu_ram_if.vh"
+`timescale 1 ns /1 ns
 
-`timescale 1 ns / 1 ns
-module memory_control_tb ;
-   
-   import cpu_types_pkg::*;
-   parameter CPUS = 2;
-   parameter PERIOD = 10;
-   logic CLK = 0, nRST;
+module memory_control_tb;
+    import cpu_types_pkg::*;
 
-   always #(PERIOD/2) CLK++;
-   
-   //inerface
-   cache_control_if ccif();
-   cpu_ram_if ramif();
+    parameter PERIOD = 20;
+    logic nRST;
+    logic CLK = 0;
+    always #(PERIOD/2) CLK++;
 
-   ram RAM (CLK, nRST, ramif);
+    cache_control_if ccif ();
+    memory_control DUT (CLK, nRST, ccif);
+    test PROG (CLK, nRST, ccif);
 
-   //test program
-   test PROG (CLK, nRST, ccif, ramif);
-   memory_control DUT(CLK, nRST, ccif);
-
-
-   assign ramif.ramaddr = ccif.ramaddr;
-   assign ccif.ramload = ramif.ramload;
-   assign ramif.ramstore = ccif.ramstore;
-   assign ccif.ramstate = ramif.ramstate;
-   assign ramif.ramREN = ccif.ramREN;
-   assign ramif.ramWEN = ccif.ramWEN;
 endmodule
 
-program test
-(
- input logic CLK,
- output logic nRST,
- cache_control_if ccif,
- cpu_ram_if  ramif
- );
-   
-   parameter PERIOD = 10;
-   int 	      n = 0;
-   
-   import cpu_types_pkg::*;
-  
-   initial begin
-      
-      nRST = 1'b0;
-      #(PERIOD)
-      nRST = 1'b1;
-      #(PERIOD)
-      
-      ccif.iREN[0] = 1'b1;
-      ccif.dREN[0] = 1'b0;
-      ccif.dWEN[0] = 1'b0;
-      ccif.dstore[0] = 32'b0;
-      ccif.daddr[0] = 32'b0;
-      ccif.iaddr[0] = 32'h0000;
-      
-      //Fetching
-      n = 1'b0;
-      while (n <= 20)
-      begin	 
-	 @(negedge ccif.iwait[0]);
-	 if (ccif.iload[0] == ccif.ramload) begin
-            //$display("Instr Fetch PASSED!\n");
-	 end
-	 else begin
-            $error("Instr Fetch FAILED!\n");
-	 end
-	 #(PERIOD)
-	 ccif.iaddr[0] = ccif.iaddr[0]  + 4;
-	 n += 1;
-	 
-      end // while (n <= 20)
-      //Reading
-      
-      ccif.iREN[0] = 1'b1;
-      ccif.dREN[0] = 1'b1;
-      ccif.dWEN[0] = 1'b0;
-      ccif.dstore[0] = 32'h0000;
-      ccif.daddr[0] = 32'h0000;
-      ccif.iaddr[0] = 32'h0000;
-      
-      n = 1'b0;
-      while (n <= 20)
-      begin
-	 ccif.dREN[0] = 1'b1;
-	 @(negedge ccif.dwait[0]);
-	 if (ccif.dload[0] == ccif.ramload) begin
-            //$display("Read Test PASSED!\n");
-	 end
-	 else begin
-            $error("Read Test FAILED!\n");
-	 end
-	 
-	 ccif.dREN[0] = 1'b0;
-	 @(negedge ccif.iwait[0]);
-	 if (ccif.iload[0] != ccif.ramload) begin
-            $display("Read Test FAILED!\n");
-	 end
-	 else begin
-            //$error("Read Test PASED!\n");
-	 end
-	 
-	 #(PERIOD)
-	 ccif.iaddr[0] = ccif.iaddr[0] + 4;
-	 ccif.daddr[0] = ccif.daddr[0] + 4;
-	 n += 1;
-      end // while (n <= 20)
-      
-      //Writting
-      ccif.iREN[0] = 1'b1;
-      ccif.dREN[0] = 1'b0;
-      ccif.dWEN[0] = 1'b1;
-      ccif.dstore[0] = 32'h0000;
-      ccif.daddr[0] = 32'h0000;
-      ccif.iaddr[0] = 32'h0000;
-      
-      n = 1'b0;
-      while (n <= 20)
-      begin
-	 ccif.dstore[0] = n;
-	 ccif.dWEN[0] = 1'b1;
-	 @(negedge ccif.dwait[0]);
-	 if (ccif.dload[0] != ccif.ramload) begin
-            $display("Write Test FAILED!\n");
-	 end
-	 else begin
-            //$error("Write Test PASSED!\n");
-	 end
-	 
-	 #(PERIOD)
-	 ccif.dWEN[0] = 1'b0;
-	 @(negedge ccif.iwait[0]);
-	 if (ccif.iload[0] != ccif.ramload) begin
-            $display("Write Test FAILED!\n");
-	 end
-	 else begin
-            //$error("Write Test PASSED!\n");
-	 end
-	 
-	 #(PERIOD)
-	 ccif.daddr[0] = ccif.daddr[0] + 4;
-	 ccif.dstore[0] = ccif.dstore[0] << 1;
-	 ccif.iaddr[0] = ccif.iaddr[0] + 4;
-	 
-	 n += 1;
-      end // while (n <= 20)
-      
-      dump_memory();
-      $finish;
-   end // initial begin
-   
-   task automatic dump_memory();
-      string filename = "memcpu.hex";
-      int    file_open;
 
-      ccif.daddr[0] = 0;
-      ccif.dWEN[0] = 0;
-      ccif.dREN[0] = 0;
-      
-      file_open = $fopen(filename,"w");
-      if (file_open)
-	begin
-	   $display("Starting memory dump.");
-	end
-      else
-	begin $display("opening file was corrupt %s.",filename); 
-	   $finish;
-	end
-      n = 1'b0;
-      
-      for (int unsigned n = 0; file_open && n < 16384; n++)
-	begin
-	   int total = 0;
-	   bit [7:0][7:0] values;
-	   string 	  ihex;
+program test (
+    input logic CLK, 
+    output logic nRST,
+    cache_control_if.cc ccif
 
-	   ccif.daddr[0] = n << 2;
-	   ccif.dREN[0] = 1;
-	   repeat (4) @(posedge CLK);
-	   if (ccif.dload[0] === 0)
-             continue;
-	   values = {8'h04,16'(n),8'h00,ccif.ramload};
-	   foreach (values[j])
-	     total += values[j];
-	     //$display("total = %h\n", total);
-             
-	   total = 256 - total;
-	   ihex = $sformatf(":04%h00%h%h",16'(n),ccif.ramload,8'(total));
-	   $fdisplay(file_open,"%s",ihex.toupper());
-	   //$display("n = %h, ccif.daddr[0] = %h values = %h total = %h\n\n", n, ccif.daddr[0], values, total);
-	   
-	end // for (int unsigned n = 0; file_open && n < 16384; n++)
-      if (file_open)
-	begin
-	   ccif.dREN[0] = 0;
-	   $fdisplay(file_open,":00000001FF");
-	   $fclose(file_open);
-	end
-   endtask // automatic
-   
-endprogram 
+);
+    import cpu_types_pkg::*;
+    parameter PERIOD = 20;
+    initial begin
 
+    
+
+    nRST = 0;
+    #(PERIOD)
+    nRST = 1;
+    #(PERIOD)
+
+    ccif.iREN[0] = 0;
+    ccif.dREN[0] = 0;
+    ccif.dWEN[0] = 0;
+    ccif.dstore[0] = 32'h0;
+    ccif.iaddr[0] = 32'h0;
+    ccif.daddr[0] = 32'h0;
+    ccif.ramload = 32'h0;
+    ccif.ramstate = FREE;
+    ccif.ccwrite[0] = 0;
+    ccif.cctrans[0] = 0;
+    ccif.iREN[1] = 0;
+    ccif.dREN[1] = 0;
+    ccif.dWEN[1] = 0;
+    ccif.dstore[1] = 0;
+    ccif.iaddr[1] = 32'h0;
+    ccif.daddr[1] = 32'h0;
+    ccif.ccwrite[1] = 0;
+    ccif.cctrans[1] = 0;
+
+    #(PERIOD)
+
+    //Case 1 Core 0 iread
+    ccif.iREN[0] = 1;
+    ccif.iaddr[0] = 32'hAAAA;
+    ccif.ramload = 32'hBBBB;
+    ccif.ramstate = ACCESS;
+
+    #(PERIOD)
+
+    if ((ccif.ramaddr == 32'hAAAA) && (ccif.ramREN == 1'b1) && (ccif.iload[0] == 32'hBBBB) && (ccif.iload[1] == 32'h0) && (ccif.iwait[0] == 0)) begin
+        $display("Pass core 0 iread 0");
+    end else begin
+        $display("FAIL core 0 iread 0");
+    end
+
+    #(PERIOD)
+
+    ccif.iREN[0] = 1;
+    ccif.iaddr[0] = 32'hAAAA;
+    ccif.ramload = 32'hBBBB;
+    ccif.ramstate = BUSY;
+
+    #(PERIOD)
+
+    if ((ccif.ramaddr == 32'hAAAA) && (ccif.ramREN == 1'b1) && (ccif.iload[0] == 32'hBBBB) && (ccif.iload[1] == 32'h0) && (ccif.iwait[0] == 1)) begin
+        $display("Pass core 0 iread 1");
+    end else begin
+        $display("FAIL core 0 iread 1");
+    end
+
+    #(PERIOD)
+
+    ccif.iREN[0] = 0;
+    ccif.dREN[0] = 0;
+    ccif.dWEN[0] = 0;
+    ccif.dstore[0] = 32'h0;
+    ccif.iaddr[0] = 32'h0;
+    ccif.daddr[0] = 32'h0;
+    ccif.ramload = 32'h0;
+    ccif.ramstate = FREE;
+    ccif.ccwrite[0] = 0;
+    ccif.cctrans[0] = 0;
+
+    #(PERIOD)
+
+    //Case 2 core 0 dwrite
+    ccif.iREN[0] = 0;
+    ccif.dREN[0] = 0;
+    ccif.dWEN[0] = 1;
+    ccif.dstore[0] = 32'hAAAA;
+    ccif.iaddr[0] = 32'h0;
+    ccif.daddr[0] = 32'hCCCC;
+    ccif.ramload = 32'h0;
+    ccif.ramstate = FREE;
+    ccif.ccwrite[0] = 0;
+    ccif.cctrans[0] = 0;
+
+    #(PERIOD)
+
+    if ((ccif.ramaddr == 32'hCCCC) && (ccif.ramWEN == 1'b1) && (ccif.ramREN == 1'b0) && (ccif.dwait[0] == 0)) begin
+        $display("Pass core 0 dwrite 0");
+    end else begin
+        $display("FAIL core 0 dwrite 0");
+    end
+
+    #(PERIOD)
+
+    ccif.ramstate = BUSY;
+
+    #(PERIOD)
+
+    if ((ccif.ramaddr == 32'hCCCC) && (ccif.ramWEN == 1'b1) && (ccif.ramREN == 1'b0) && (ccif.dwait[0] == 1)) begin
+        $display("Pass core 0 dwrite 1");
+    end else begin
+        $display("FAIL core 0 dwrite 1");
+    end
+
+    #(PERIOD)
+
+    ccif.iREN[0] = 0;
+    ccif.dREN[0] = 0;
+    ccif.dWEN[0] = 0;
+    ccif.dstore[0] = 32'h0;
+    ccif.iaddr[0] = 32'h0;
+    ccif.daddr[0] = 32'h0;
+    ccif.ramload = 32'h0;
+    ccif.ramstate = FREE;
+    ccif.ccwrite[0] = 0;
+    ccif.cctrans[0] = 0;
+
+    #(PERIOD)
+
+    ccif.iREN[0] = 0;
+    ccif.dREN[0] = 1;
+    ccif.dWEN[0] = 0;
+    ccif.dstore[0] = 32'h0;
+    ccif.iaddr[0] = 32'h0;
+    ccif.daddr[0] = 32'hABCD;
+    ccif.ramload = 32'h0;
+    ccif.ramstate = FREE;
+    ccif.ccwrite[0] = 1;
+    ccif.cctrans[0] = 0;
+    ccif.iREN[1] = 0;
+    ccif.dREN[1] = 1;
+    ccif.dWEN[1] = 0;
+    ccif.dload[1] = 32'hA1A1;
+    ccif.dstore[1] = 32'h0;
+    ccif.iaddr[1] = 32'h0;
+    ccif.daddr[1] = 32'hABBB;
+    ccif.ccwrite[1] = 1;
+    ccif.cctrans[1] = 0;
+
+    #(PERIOD)
+
+    if ((ccif.ccwait[1] == 1'b1) && (ccif.ccinv[1] == 1) && (ccif.ccsnoopaddr[1] == 32'hABCD)) begin
+        $display("Pass core 0 dread 0");
+    end else begin
+        $display("FAIL core 0 dread 0");
+    end
+
+    #(PERIOD)
+
+    ccif.dREN[1] = 1;
+
+    #(PERIOD)
+
+    if ((ccif.dload[0] == 32'h0) && (ccif.dwait[1] == 1) && (ccif.ramaddr == 32'hABBB) && (ccif.ramREN == 1)) begin
+        $display("Pass core 0 dread 1");
+    end else begin
+        $display("FAIL core 0 dread 1");
+    end
+
+    #(PERIOD)
+
+    ccif.dREN[0] = 0;
+
+    #(PERIOD)
+
+    ccif.dREN[0] = 1;
+    ccif.ccwrite[0] = 0;
+    ccif.dload[1] = 32'hAEAE;
+
+    #(PERIOD)
+
+    if ((ccif.ccwait[1] == 1'b1) && (ccif.ccinv[1] == 0) && (ccif.ccsnoopaddr[1] == 32'hABCD)) begin
+        $display("Pass core 0 dread 2");
+    end else begin
+        $display("FAIL core 0 dread 2");
+    end
+
+    #(PERIOD)
+
+    if ((ccif.dload[0] == 32'h0) && (ccif.dwait[1] == 1) && (ccif.ramaddr == 32'hABBB) && (ccif.ramREN == 1)) begin
+        $display("Pass core 0 dread 3");
+    end else begin
+        $display("FAIL core 0 dread 3");
+    end
+
+    end
+
+endprogram
