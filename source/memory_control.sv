@@ -1,184 +1,46 @@
 /*
-    Javier Gonzalez Souto && Cyrus Sutaria
-    gonzal88@purdue.edu
-    csutaria@purdue.edu 
+  Javier Gonzalez Souto
 
-    Cache coherency controller
- */
+  this block is the coherence protocol
+  and artibtration for ram
+*/
 
+// interface include
 `include "cache_control_if.vh"
+
+// memory types
 `include "cpu_types_pkg.vh"
 
 module memory_control (
-    input logic CLK, nRST,
-    cache_control_if.cc ccif
-);
-    import cpu_types_pkg::*;
+               input CLK, nRST,
+               cache_control_if.cc ccif
+               );
+   // type import
+   import cpu_types_pkg::*;
+   
+   // number of cpus for cc
+   parameter CPUS = 2;
 
-    typedef enum logic [2:0] {IDLE, IST, WST, SNOOP, C2C, M2C} StateType;
-    StateType curr_state;
-    StateType next_state;
-
-    logic cpu_sel, next_cpu_sel;
-
-    always_ff @(posedge CLK or negedge nRST) begin
-        if (!nRST) begin
-            curr_state <= IDLE;
-            cpu_sel <= 0;
-        end else begin
-            curr_state <= next_state;
-            cpu_sel <= next_cpu_sel;
-        end
-    end
-
-    always_comb begin
-        next_cpu_sel = cpu_sel;
-        casez (curr_state)
-            IDLE: begin
-                if (ccif.iREN[0] || ccif.iREN[1]) begin
-                    next_state = IST;
-                end else if (ccif.dWEN[0]) begin
-                    next_state = WST;
-                end else if (ccif.dREN[0]) begin
-                    next_state = SNOOP;
-                end else begin
-                    next_state = IDLE;
-                end
-            end
-
-            IST: begin
-                if (ccif.iREN[cpu_sel]) begin
-                    next_state = IST;
-                end else begin
-                    next_state = IDLE;
-                    next_cpu_sel = !cpu_sel;
-                end
-            end
-
-            WST: begin
-                if (ccif.dWEN[0]) begin
-                    next_state = WST;
-                end else begin
-                    next_state = IDLE;
-                end
-            end
-
-            SNOOP: begin
-                if (!ccif.dREN[1]) begin
-                    next_state = M2C;
-                end else begin
-                    next_state = C2C;
-                end
-            end
-
-            M2C: begin
-                if (ccif.dREN[0]) begin
-                    next_state = M2C;
-                end else begin
-                    next_state = IDLE;
-                end
-            end
-
-            C2C: begin
-                if (ccif.dREN[0]) begin
-                    next_state = C2C;
-                end else begin
-                    next_state = IDLE;
-                end
-            end
-
-
-        endcase
-    end
-
-    always_comb begin
-        ccif.ccwait = 0;
-        ccif.ccinv = 0;
-        ccif.ccsnoopaddr = 0;
-        ccif.ramstore = 0;
-        ccif.ramaddr = 0;
-        ccif.ramWEN = 0;
-        ccif.ramREN = 0;
-        ccif.iwait = 0;
-        ccif.dwait = 0;
-        ccif.iload = 0;
-        ccif.dload = 0;
-        casez (curr_state)
-            IDLE: begin
-                
-            end
-
-            IST: begin
-                if (ccif.iREN[0] && ccif.iREN[1]) begin
-                    ccif.ramaddr = ccif.iaddr[cpu_sel];
-                    ccif.ramREN = ccif.iREN[cpu_sel];
-                    ccif.iload[cpu_sel] = ccif.ramload;
-                    if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                        ccif.iwait[cpu_sel] = 1'b0;
-                    end else if (ccif.ramstate == FREE) begin //FREE
-                        ccif.iwait[cpu_sel] = 1'b0;
-                    end else begin //BUSY, ERROR and default
-                        ccif.iwait[cpu_sel] = 1'b1;
-                    end
-                end else begin
-                    ccif.ramaddr = ccif.iaddr[0];
-                    ccif.ramREN = ccif.iREN[0];
-                    ccif.iload[0] = ccif.ramload;
-                    if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                        ccif.iwait[0] = 1'b0;
-                    end else if (ccif.ramstate == FREE) begin //FREE
-                        ccif.iwait[0] = 1'b0;
-                    end else begin //BUSY, ERROR and default
-                        ccif.iwait[0] = 1'b1;
-                    end
-                end
-            end
-
-            WST: begin
-                ccif.ramstore = ccif.dstore[0];
-                ccif.ramWEN = ccif.dWEN[0];
-                ccif.ramaddr = ccif.daddr[0];
-                if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                    ccif.dwait[0] = 1'b0;
-                end else if (ccif.ramstate == FREE) begin //FREE
-                    ccif.dwait[0] = 1'b0;
-                end else begin //BUSY, ERROR and default
-                    ccif.dwait[0] = 1'b1;
-                end
-            end
-
-            SNOOP: begin
-                ccif.ccwait[1] = 1;
-                ccif.ccinv[1] = ccif.ccwrite[0];
-                ccif.ccsnoopaddr[1] = ccif.daddr[0]; 
-            end
-
-            C2C: begin
-                ccif.dload[0] = ccif.dstore[1];
-                ccif.dwait[1] = !(ccif.ramstate == ACCESS);
-                ccif.dwait[0] = !(ccif.ramstate == ACCESS);
-                ccif.ramaddr = ccif.daddr[1];
-                ccif.ramREN = ccif.dREN[1];
-            end
-
-            M2C: begin
-                ccif.dload[0] = ccif.ramload;
-                ccif.dwait[1] = 1'b1;
-                ccif.ramaddr = ccif.daddr[0];
-                ccif.ramREN = ccif.dREN[0];
-                if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                    ccif.dwait[0] = 1'b0;
-                end else if (ccif.ramstate == FREE) begin //FREE
-                    ccif.dwait[0] = 1'b0;
-                end else begin //BUSY, ERROR and default
-                    ccif.dwait[0] = 1'b1;
-                end
-            end
-
-        endcase
-    end
-endmodule
-
-
-//cctrans is 1 when going to update 1 from IDLE and WB2
-//Use cctrans && dren on bus control?
+   assign ccif.ramstore = ccif.dstore[0];
+   assign ccif.iload[0] = ccif.ramload;
+   assign ccif.dload[0] = ccif.ramload;
+   assign ccif.ramaddr = ((ccif.dWEN[0] == 1'b1) || (ccif.dREN[0] == 1'b1)) ? ccif.daddr: ccif.iaddr;
+   assign ccif.ramREN= !ccif.dWEN[0] && (ccif.iREN[0] || ccif.dREN[0]);
+   assign ccif.ramWEN = ccif.dWEN[0];
+   
+   always_comb begin
+      if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
+     ccif.dwait[0] = ((ccif.iREN[0]) && (!ccif.dREN[0]) && (!ccif.dWEN[0])) ?1'b1:1'b0;
+     ccif.iwait[0] = ((ccif.dREN[0]) || (ccif.dWEN[0]))? 1'b1: 1'b0;
+      end
+      else if (ccif.ramstate == FREE) begin //FREE
+     ccif.iwait[0] = 1'b0;
+     ccif.dwait[0] = 1'b0;
+      end
+      else begin //BUSY, ERROR and default
+     ccif.iwait[0] = 1'b1;
+     ccif.dwait[0] = 1'b1;
+      end
+   end // always_comb
+   
+endmodule // memory_control
