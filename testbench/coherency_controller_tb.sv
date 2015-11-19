@@ -168,9 +168,8 @@ program test (
     ccif.cctrans[0] = 0;
     ccif.iREN[1] = 0;
     ccif.dREN[1] = 1;
-    ccif.dWEN[1] = 0;
-    ccif.dload[1] = 32'hA1A1;
-    ccif.dstore[1] = 32'h0;
+    ccif.dWEN[1] = 0;;
+    ccif.dstore[1] = 32'hA1A1;
     ccif.iaddr[1] = 32'h0;
     ccif.daddr[1] = 32'hABBB;
     ccif.ccwrite[1] = 1;
@@ -186,7 +185,7 @@ program test (
 
     #(PERIOD)
 
-    ccif.dREN[1] = 1;
+    ccif.dWEN[1] = 1;
 
     #(PERIOD)
 
@@ -204,7 +203,7 @@ program test (
 
     ccif.dREN[0] = 1;
     ccif.ccwrite[0] = 0;
-    ccif.dload[1] = 32'hAEAE;
+    ccif.dstore[1] = 32'hAEAE;
 
     #(PERIOD)
 

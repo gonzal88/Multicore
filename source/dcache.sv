@@ -341,7 +341,7 @@ module dcache (
             end
 
             UPDATE2: begin
-                ccif.dREN = 1;
+                ccif.dREN[] = 1;
                 ccif.dWEN = 0;
                 ccif.dstore = 0;
                 ccif.daddr = {dcif.dmemaddr[WORD_W-1:3], 1'b1, 2'b00}; // Could possibly also just leave byte offset as 00

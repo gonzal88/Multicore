@@ -35,12 +35,17 @@ module coherency_controller (
         next_cpu_sel = cpu_sel;
         casez (curr_state)
             IDLE: begin
-                if (ccif.iREN[0] || ccif.iREN[1]) begin
+                if (ccif.iREN[cpu_sel] || ccif.iREN[~cpu_sel]) begin
                     next_state = IST;
-                end else if (ccif.dWEN[0]) begin
+                end else if (ccif.dWEN[cpu_sel]) begin
                     next_state = WST;
-                end else if (ccif.dREN[0]) begin
-                    next_state = SNOOP;
+                end else if (ccif.dREN[cpu_sel] || ccif.dREN[~cpu_sel]) begin
+		    if (ccif.dREN[cpu_sel]) begin
+		      next_cpu_sel = 0;
+		    end else begin
+		      next_cpu_sel = 1;
+		    end
+		      next_state = SNOOP;
                 end else begin
                     next_state = IDLE;
                 end
@@ -51,20 +56,20 @@ module coherency_controller (
                     next_state = IST;
                 end else begin
                     next_state = IDLE;
-                    next_cpu_sel = !cpu_sel;
-                end
+		    next_cpu_sel = ~cpu_sel;
+		end
             end
 
             WST: begin
-                if (ccif.dWEN[0]) begin
+                if (ccif.dWEN[cpu_sel]) begin
                     next_state = WST;
                 end else begin
                     next_state = IDLE;
-                end
+		end
             end
 
             SNOOP: begin
-                if (!ccif.dREN[1]) begin
+                if (!ccif.dWEN[~cpu_sel]) begin
                     next_state = M2C;
                 end else begin
                     next_state = C2C;
@@ -72,19 +77,20 @@ module coherency_controller (
             end
 
             M2C: begin
-                if (ccif.dREN[0]) begin
+                if (ccif.dREN[cpu_sel]) begin
                     next_state = M2C;
                 end else begin
                     next_state = IDLE;
-                end
+		end
             end
 
             C2C: begin
-                if (ccif.dREN[0]) begin
+                if (ccif.dREN[cpu_sel]) begin
                     next_state = C2C;
                 end else begin
                     next_state = IDLE;
-                end
+		    next_cpu_sel = ~cpu_sel;
+		end
             end
 
 
@@ -109,7 +115,7 @@ module coherency_controller (
             end
 
             IST: begin
-                if (ccif.iREN[0] && ccif.iREN[1]) begin
+                if (ccif.iREN[cpu_sel] && ccif.iREN[~cpu_sel]) begin
                     ccif.ramaddr = ccif.iaddr[cpu_sel];
                     ccif.ramREN = ccif.iREN[cpu_sel];
                     ccif.iload[cpu_sel] = ccif.ramload;
@@ -121,57 +127,57 @@ module coherency_controller (
                         ccif.iwait[cpu_sel] = 1'b1;
                     end
                 end else begin
-                    ccif.ramaddr = ccif.iaddr[0];
-                    ccif.ramREN = ccif.iREN[0];
-                    ccif.iload[0] = ccif.ramload;
+                    ccif.ramaddr = ccif.iaddr[cpu_sel];
+                    ccif.ramREN = ccif.iREN[cpu_sel];
+                    ccif.iload[cpu_sel] = ccif.ramload;
                     if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                        ccif.iwait[0] = 1'b0;
+                        ccif.iwait[cpu_sel] = 1'b0;
                     end else if (ccif.ramstate == FREE) begin //FREE
-                        ccif.iwait[0] = 1'b0;
+                        ccif.iwait[cpu_sel] = 1'b0;
                     end else begin //BUSY, ERROR and default
-                        ccif.iwait[0] = 1'b1;
+                        ccif.iwait[cpu_sel] = 1'b1;
                     end
                 end
             end
 
             WST: begin
-                ccif.ramstore = ccif.dstore[0];
-                ccif.ramWEN = ccif.dWEN[0];
-                ccif.ramaddr = ccif.daddr[0];
+                ccif.ramstore = ccif.dstore[cpu_sel];
+                ccif.ramWEN = ccif.dWEN[cpu_sel];
+                ccif.ramaddr = ccif.daddr[cpu_sel];
                 if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                    ccif.dwait[0] = 1'b0;
+                    ccif.dwait[cpu_sel] = 1'b0;
                 end else if (ccif.ramstate == FREE) begin //FREE
-                    ccif.dwait[0] = 1'b0;
+                    ccif.dwait[cpu_sel] = 1'b0;
                 end else begin //BUSY, ERROR and default
-                    ccif.dwait[0] = 1'b1;
+                    ccif.dwait[cpu_sel] = 1'b1;
                 end
             end
 
             SNOOP: begin
-                ccif.ccwait[1] = 1;
-                ccif.ccinv[1] = ccif.ccwrite[0];
-                ccif.ccsnoopaddr[1] = ccif.daddr[0]; 
+                ccif.ccwait[~cpu_sel] = 1;
+                ccif.ccinv[~cpu_sel] = ccif.ccwrite[cpu_sel];
+                ccif.ccsnoopaddr[~cpu_sel] = ccif.daddr[cpu_sel]; 
             end
 
             C2C: begin
-                ccif.dload[0] = ccif.dstore[1];
-                ccif.dwait[1] = !(ccif.ramstate == ACCESS);
-                ccif.dwait[0] = !(ccif.ramstate == ACCESS);
-                ccif.ramaddr = ccif.daddr[1];
-                ccif.ramREN = ccif.dREN[1];
+                ccif.dload[cpu_sel] = ccif.dstore[~cpu_sel];
+                ccif.dwait[~cpu_sel] = !(ccif.ramstate == ACCESS);
+                ccif.dwait[cpu_sel] = !(ccif.ramstate == ACCESS);
+                ccif.ramaddr = ccif.daddr[~cpu_sel];
+                ccif.ramREN = ccif.dREN[~cpu_sel];
             end
 
             M2C: begin
-                ccif.dload[0] = ccif.ramload;
-                ccif.dwait[1] = 1'b1;
-                ccif.ramaddr = ccif.daddr[0];
-                ccif.ramREN = ccif.dREN[0];
+                ccif.dload[cpu_sel] = ccif.ramload;
+                ccif.dwait[~cpu_sel] = 1'b1;
+                ccif.ramaddr = ccif.daddr[cpu_sel];
+                ccif.ramREN = ccif.dREN[cpu_sel];
                 if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                    ccif.dwait[0] = 1'b0;
+                    ccif.dwait[cpu_sel] = 1'b0;
                 end else if (ccif.ramstate == FREE) begin //FREE
-                    ccif.dwait[0] = 1'b0;
+                    ccif.dwait[cpu_sel] = 1'b0;
                 end else begin //BUSY, ERROR and default
-                    ccif.dwait[0] = 1'b1;
+                    ccif.dwait[cpu_sel] = 1'b1;
                 end
             end
 
