@@ -37,8 +37,13 @@ module coherency_controller (
             IDLE: begin
                 if (ccif.iREN[cpu_sel] || ccif.iREN[~cpu_sel]) begin
                     next_state = IST;
-                end else if (ccif.dWEN[cpu_sel]) begin
-                    next_state = WST;
+                end else if (ccif.dWEN[cpu_sel] || ccif.dWEN[~cpu_sel]) begin
+		    if (ccif.dWEN[cpu_sel]) begin
+		      next_cpu_sel = 0;
+		    end else begin
+		      next_cpu_sel = 1;
+		    end
+		      next_state = WST;
                 end else if (ccif.dREN[cpu_sel] || ccif.dREN[~cpu_sel]) begin
 		    if (ccif.dREN[cpu_sel]) begin
 		      next_cpu_sel = 0;
