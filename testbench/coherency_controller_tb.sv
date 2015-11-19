@@ -145,14 +145,14 @@ program test (
 
     ccif.iREN[0] = 0;
     ccif.dREN[0] = 0;
-    ccif.dWEN[0] = 0;
-    ccif.dstore[0] = 32'h0;
-    ccif.iaddr[0] = 32'h0;
-    ccif.daddr[0] = 32'h0;
+    ccif.dWEN[1] = 0;
+    ccif.dstore[1] = 32'h0;
+    ccif.iaddr[1] = 32'h0;
+    ccif.daddr[1] = 32'h0;
     ccif.ramload = 32'h0;
     ccif.ramstate = FREE;
-    ccif.ccwrite[0] = 0;
-    ccif.cctrans[0] = 0;
+    ccif.ccwrite[1] = 0;
+    ccif.cctrans[1] = 0;
 
     #(PERIOD)
 
@@ -189,7 +189,7 @@ program test (
 
     #(PERIOD)
 
-    if ((ccif.dload[0] == 32'h0) && (ccif.dwait[1] == 1) && (ccif.ramaddr == 32'hABBB) && (ccif.ramREN == 1)) begin
+    if ((ccif.dload[0] == 32'h0) && (ccif.dwait[1] == 1) && (ccif.ramaddr == 32'hABCD) && (ccif.ramREN == 1)) begin
         $display("Pass core 0 dread 1");
     end else begin
         $display("FAIL core 0 dread 1");
@@ -198,10 +198,14 @@ program test (
     #(PERIOD)
 
     ccif.dREN[0] = 0;
+    ccif.dWEN[1] = 0;
+       
 
     #(PERIOD)
 
     ccif.dREN[0] = 1;
+    ccif.dREN[1] = 0;
+       
     ccif.ccwrite[0] = 0;
     ccif.dstore[1] = 32'hAEAE;
 
@@ -214,6 +218,10 @@ program test (
     end
 
     #(PERIOD)
+    ccif.dREN[0] = 0;
+       
+    ccif.dWEN[1] = 1;
+       
 
     if ((ccif.dload[0] == 32'h0) && (ccif.dwait[1] == 1) && (ccif.ramaddr == 32'hABBB) && (ccif.ramREN == 1)) begin
         $display("Pass core 0 dread 3");
