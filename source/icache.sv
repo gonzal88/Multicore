@@ -67,7 +67,7 @@ module icache (
         next_block_tag = block_tag[icache_sel.idx];
         next_block_valid = block_valid[icache_sel.idx];
 
-        if (!hit) begin // cache miss!
+        if (!hit && dcif.imemREN) begin // cache miss!
           next_read_state = UPDATE;
         end else begin
           next_read_state = IDLE;
@@ -83,7 +83,9 @@ module icache (
           next_block_valid = 1'b1;
 
           next_read_state = IDLE;
-        end else begin // else keep waiting for the RAM
+        end else if (!dcif.imemREN) begin
+	   next_read_state = IDLE;
+	end else begin // else keep waiting for the RAM
           next_read_state = UPDATE;
         end
       end
