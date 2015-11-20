@@ -15,21 +15,22 @@
 
 module caches (
   input logic CLK, nRST,
-  datapath_cache_if.cache dcif,
-  cache_control_if.caches ccif
+  datapath_cache_if dcif,
+  cache_control_if ccif
 );
   // import types
   import cpu_types_pkg::word_t;
 
   parameter CPUID = 0;
+   
 
   word_t instr;
   word_t daddr;
 
   // icache
-  icache  ICACHE(CLK, nRST, dcif, ccif);
+   icache  #(.CPUID(CPUID)) ICACHE(CLK, nRST, dcif, ccif);
   // dcache
-  dcache  DCACHE(CLK, nRST, dcif, ccif);
+  dcache  #(.CPUID(CPUID)) DCACHE(CLK, nRST, dcif, ccif);
 
   // single cycle instr saver (for memory ops)
 /*

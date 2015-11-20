@@ -2,8 +2,8 @@
 //http://stackoverflow.com/questions/2776211/how-can-i-multiply-and-divide-using-only-bit-shifting-and-adding
 	org 0x0000
 	ori $29, $0, 0xFFFC
-	ori $21, $0, 0x0011
-	ori $20, $0, 0x0100
+	ori $21, $0, 0x0001
+	ori $20, $0, 0x0001
 	push $21
 	push $20
 	

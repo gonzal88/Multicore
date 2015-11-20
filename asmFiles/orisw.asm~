@@ -1,6 +1,0 @@
-  org 0x0000
-  ori $29, $0, 0xFFFC
-  ori $21, $0, 0x0011
-  ori $20, $0, 0x0100
-  push $21
-  halt

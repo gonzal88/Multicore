@@ -1,151 +1,50 @@
-processing file asmFiles/branches.asm (1 of 24)
-processing file asmFiles/branches.asm~ (2 of 24)
-processing file asmFiles/count_days.asm (3 of 24)
---- memsim.hex	2015-11-19 14:38:20.465414616 -0500
-+++ memcpu.hex	2015-11-19 14:38:20.218407710 -0500
-@@ -46,11 +46,9 @@
- :04002D0002B2A82053
- :04002E0000D5B82021
- :04002F00FFFFFFFFD1
--:040C400000000008A8
--:043FF90000000001C3
--:043FFA000000001EA5
--:043FFB0000000008BA
--:043FFC00000007D0EA
-+:040C40000000000AA6
-+:043FFB000000001EA4
-+:043FFC0000000008B9
- :043FFD000000016D52
- :043FFE00000007DFD9
+processing file asmFiles/branches.asm (1 of 23)
+processing file asmFiles/branches.asm~ (2 of 23)
+processing file asmFiles/count_days.asm (3 of 23)
+processing file asmFiles/count_days.asm~ (4 of 23)
+processing file asmFiles/#fib1.asm# (5 of 23)
+processing file asmFiles/fib1.asm (6 of 23)
+processing file asmFiles/fib.asm (7 of 23)
+processing file asmFiles/jumpandlink.asm (8 of 23)
+processing file asmFiles/jumpandlink.asm~ (9 of 23)
+--- memsim.hex	2015-11-19 19:36:17.676855818 -0500
++++ memcpu.hex	2015-11-19 19:36:17.518851404 -0500
+@@ -8,6 +8,5 @@
+ :04000700FFFFFFFFF9
+ :04000800AC420008FE
+ :04000900FFFFFFFFF7
+-:042AAB000000BBBBB1
+ :042AAD000000AAACCF
  :00000001FF
-processing file asmFiles/count_days.asm~ (4 of 24)
---- memsim.hex	2015-11-19 14:38:22.892482439 -0500
-+++ memcpu.hex	2015-11-19 14:38:22.661475985 -0500
-@@ -46,11 +46,9 @@
- :04002D0002B2A82053
- :04002E0000D5B82021
- :04002F00FFFFFFFFD1
--:040C400000000008A8
--:043FF90000000001C3
--:043FFA000000001EA5
--:043FFB0000000008BA
--:043FFC00000007D0EA
-+:040C40000000000AA6
-+:043FFB000000001EA4
-+:043FFC0000000008B9
- :043FFD000000016D52
- :043FFE00000007DFD9
- :00000001FF
-processing file asmFiles/#fib1.asm# (5 of 24)
---- memsim.hex	2015-11-19 14:38:26.957596039 -0500
-+++ memcpu.hex	2015-11-19 14:38:26.762590590 -0500
-@@ -12,9 +12,7 @@
- :04000B0015E0FFF904
- :04000C00FFFFFFFFF4
- :0400210000000001DA
--:0400220000000001D9
--:0400230000000002D7
--:0400240000000003D5
-+:0400230000000001D8
- :0403C0000000000336
--:040C400000000006AA
-+:040C400000000004AC
- :00000001FF
-processing file asmFiles/fib1.asm (6 of 24)
---- memsim.hex	2015-11-19 14:38:30.947707542 -0500
-+++ memcpu.hex	2015-11-19 14:38:30.734701588 -0500
-@@ -12,9 +12,7 @@
- :04000B0015E0FFF904
- :04000C00FFFFFFFFF4
- :0400210000000001DA
--:0400220000000001D9
--:0400230000000002D7
--:0400240000000003D5
-+:0400230000000001D8
- :0403C0000000000336
--:040C400000000006AA
-+:040C400000000004AC
- :00000001FF
-processing file asmFiles/fib1.asm~ (7 of 24)
---- memsim.hex	2015-11-19 14:38:34.952819464 -0500
-+++ memcpu.hex	2015-11-19 14:38:34.764814210 -0500
-@@ -12,28 +12,7 @@
- :04000B0015E0FFF904
- :04000C00FFFFFFFFF4
- :0400210000000001DA
--:0400220000000001D9
--:0400230000000002D7
--:0400240000000003D5
--:0400250000000005D2
--:0400260000000008CE
--:040027000000000DC8
--:0400280000000015BF
--:0400290000000022B1
--:04002A00000000379B
--:04002B000000005978
--:04002C000000009040
--:04002D00000000E9E6
--:04002E000000017954
--:04002F000000026269
--:04003000000003DBEE
--:040031000000063D88
--:0400320000000A18A8
--:040033000000105564
--:0400340000001A6D41
--:0400350000002AC2DB
--:040036000000452F52
--:0400370000006FF165
-+:0400230000000001D8
- :0403C0000000001623
--:040C4000000000367A
-+:040C400000000004AC
- :00000001FF
-processing file asmFiles/fib.asm (8 of 24)
---- memsim.hex	2015-11-19 14:38:38.805927138 -0500
-+++ memcpu.hex	2015-11-19 14:38:38.609921662 -0500
-@@ -12,28 +12,7 @@
- :04000B0015E0FFF904
- :04000C00FFFFFFFFF4
- :0400210000000001DA
--:0400220000000001D9
--:0400230000000002D7
--:0400240000000003D5
--:0400250000000005D2
--:0400260000000008CE
--:040027000000000DC8
--:0400280000000015BF
--:0400290000000022B1
--:04002A00000000379B
--:04002B000000005978
--:04002C000000009040
--:04002D00000000E9E6
--:04002E000000017954
--:04002F000000026269
--:04003000000003DBEE
--:040031000000063D88
--:0400320000000A18A8
--:040033000000105564
--:0400340000001A6D41
--:0400350000002AC2DB
--:040036000000452F52
--:0400370000006FF165
-+:0400230000000001D8
- :0403C0000000001623
--:040C4000000000367A
-+:040C400000000004AC
- :00000001FF
-processing file asmFiles/jumpandlink.asm (9 of 24)
-processing file asmFiles/jumpandlink.asm~ (10 of 24)
-processing file asmFiles/mergesort.asm (11 of 24)
---- memsim.hex	2015-11-19 14:38:46.892153106 -0500
-+++ memcpu.hex	2015-11-19 14:38:46.643146148 -0500
-@@ -141,7 +141,6 @@
- :0400FE0000000032CC
- :0400FF0000000007F6
- :0401000000000043B8
--:040140000000005A61
--:040C400000000002AE
-+:040C400000000001AF
- :043FFE0000000500BA
- :00000001FF
-processing file asmFiles/mult.asm (12 of 24)
+processing file asmFiles/mergesort.asm (10 of 23)
+processing file asmFiles/mult.asm (11 of 23)
+processing file asmFiles/mult.asm~ (12 of 23)
+processing file asmFiles/mult_procedure.asm (13 of 23)
+processing file asmFiles/#orisw.asm# (14 of 23)
+processing file asmFiles/orisw.asm (15 of 23)
+processing file asmFiles/orisw.asm~ (16 of 23)
+processing file asmFiles/search.asm (17 of 23)
+processing file asmFiles/#test.branchjump1.asm# (18 of 23)
+processing file asmFiles/test.branchjump1.asm (19 of 23)
+processing file asmFiles/test.ldst1.asm (20 of 23)
+processing file asmFiles/test.ldst2.asm (21 of 23)
+processing file asmFiles/test.loadstore.asm (22 of 23)
+processing file asmFiles/test.rtype.asm (23 of 23)
+processing file asmFiles/branches.asm (1 of 18)
+processing file asmFiles/count_days.asm (2 of 18)
+processing file asmFiles/#fib1.asm# (3 of 18)
+processing file asmFiles/fib1.asm (4 of 18)
+processing file asmFiles/fib.asm (5 of 18)
+processing file asmFiles/jumpandlink.asm (6 of 18)
+processing file asmFiles/mergesort.asm (7 of 18)
+processing file asmFiles/mult.asm (8 of 18)
+processing file asmFiles/mult_procedure.asm (9 of 18)
+processing file asmFiles/#orisw.asm# (10 of 18)
+processing file asmFiles/orisw.asm (11 of 18)
+processing file asmFiles/search.asm (12 of 18)
+processing file asmFiles/#test.branchjump1.asm# (13 of 18)
+processing file asmFiles/test.branchjump1.asm (14 of 18)
+processing file asmFiles/test.ldst1.asm (15 of 18)
+processing file asmFiles/test.ldst2.asm (16 of 18)
+processing file asmFiles/test.loadstore.asm (17 of 18)
+processing file asmFiles/test.rtype.asm (18 of 18)
