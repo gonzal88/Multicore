@@ -13,11 +13,12 @@
 
 module icache (
   input logic CLK, nRST,
-  datapath_cache_if.icache dcif,
-  cache_control_if.icache ccif
+  datapath_cache_if dcif,
+  cache_control_if ccif
 );
   import cpu_types_pkg::*;
-
+  parameter CPUID = 0;
+   
   typedef enum logic {IDLE, UPDATE} ReadStateType;
   ReadStateType curr_read_state;
   ReadStateType next_read_state;
@@ -34,7 +35,7 @@ module icache (
   logic update_block, hit;
 
   assign icache_sel = icachef_t'(dcif.imemaddr); //'
-  assign hit = ((icache_sel.tag == block_tag[icache_sel.idx]) && (block_valid[icache_sel.idx]) && (dcif.imemREN)) ? ~ccif.iwait : 1'b0 ;
+  assign hit = ((icache_sel.tag == block_tag[icache_sel.idx]) && (block_valid[icache_sel.idx]) && (dcif.imemREN)) ? 1'b1 : 1'b0 ; // ~ccif.iwait
 
   always_ff @(posedge CLK or negedge nRST) begin
     if(!nRST) begin
@@ -67,7 +68,7 @@ module icache (
         next_block_tag = block_tag[icache_sel.idx];
         next_block_valid = block_valid[icache_sel.idx];
 
-        if (!hit) begin // cache miss!
+        if (!hit && dcif.imemREN) begin // cache miss!
           next_read_state = UPDATE;
         end else begin
           next_read_state = IDLE;
@@ -77,13 +78,15 @@ module icache (
       UPDATE: begin
         update_block = 1'b1;
 	
-        if (!ccif.iwait) begin // no longer waiting for RAM
+        if (!ccif.iwait[CPUID]) begin // no longer waiting for RAM
           next_block_data = ccif.iload;
           next_block_tag = icache_sel.tag;
           next_block_valid = 1'b1;
 
           next_read_state = IDLE;
-        end else begin // else keep waiting for the RAM
+        end else if (!dcif.imemREN) begin
+	   next_read_state = IDLE;
+	end else begin // else keep waiting for the RAM
           next_read_state = UPDATE;
         end
       end
@@ -94,7 +97,7 @@ module icache (
   assign dcif.imemload = block_data[icache_sel.idx];
   assign dcif.ihit = hit;
 
-  assign ccif.iREN = update_block;
-  assign ccif.iaddr = dcif.imemaddr;
+  assign ccif.iREN[CPUID] = update_block;
+  assign ccif.iaddr[CPUID] = dcif.imemaddr;
 
 endmodule

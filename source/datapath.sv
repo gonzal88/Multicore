@@ -95,14 +95,23 @@ module datapath (
 
    
    
-   assign ifid.iien = !hazard_enable ? dpif.ihit: dpif.dhit;
+   //assign ifid.iien = !hazard_enable ? dpif.ihit: dpif.dhit;
+   always_comb begin
+      if (exme.opcode_o == LW || exme.opcode_o == SW) begin
+	 ifid.iien = dpif.dhit && dpif.ihit && !hazard_enable;
+	 
+      end
+      else begin
+	 ifid.iien = !hazard_enable && dpif.ihit;
+      end
+   end
    //assign ifid.iien = !hazard_enable ? dpif.ihit : 1'b0;
    
    //assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit || dpif.dhit : 1'b0;
-   assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit : (dpif.dhit  || mem.halt_o);
+   assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit : ((dpif.dhit && !dpif.ihit) || mem.halt_o);
    assign ifid.npc_i = npc;
    assign ifid.dload_i = dpif.dmemload;
-   assign pcif.PCen = (dpif.ihit || branch_out) && !hazard_enable;
+   assign pcif.PCen = ifid.iien || branch_out;
    //assign pcif.PCen = !hazard_enable ? dpif.ihit : dpif.dhit;
    
    assign dpif.imemaddr = pcif.PCcurr;
@@ -119,7 +128,7 @@ module datapath (
    
    //////////////////////////////////////////////////////////////
    //DATAPATH
-   assign dpif.imemREN = 1'b1;
+   assign dpif.imemREN = dpif.halt ? 1'b0 : 1'b1;
    
    
    ///////////////////////////////////////////////////////////////////
@@ -223,7 +232,7 @@ module datapath (
    assign exme.ALUsource_i = idex.ALUsource_o;
    assign exme.rt_i = idex.rt_o;
    assign exme.dload_i = idex.dload_o;
-   assign exme.enable = (exme.opcode_o == LW || exme.opcode_o == SW) && !mem.halt_o ? dpif.dhit : dpif.ihit;
+   assign exme.enable = (exme.opcode_o == LW || exme.opcode_o == SW) || exme.halt_o ? dpif.dhit : dpif.ihit;
    assign exme.target_i = idex.target_o;
    
 

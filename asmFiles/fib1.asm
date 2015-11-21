@@ -30,4 +30,4 @@ start:
 # comment to use mmio
 
   org 0x0F00
-  cfw 3
+  cfw 17
