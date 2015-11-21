@@ -20,7 +20,24 @@ org 0x0000 # Core 1 start
 #  while counter not at 0
   #   if structure not full
   #     produce number
+
+  ori $s1, $0, 256											#############################
+  ori $t5, $0, 4
+  ori $s2, $0, data											#############################
+  sub $s3, $s2, $t5											#############################
+  addi $s4, $s2, 40											#############################
+  lw  $a0, seed($0)											#############################
+  jal crc32												#############################
+
+
+p0label:
+  lw  $s5, stack_top($0)										#############################
+  beq $s5, $s4, p0label											#############################
+  
+
+	
 looklock1:                     #   see lock
+
   ll $t1, lockloc($0)
   ori $t2, $t1, 1              #   go back to looklock if locked
   beq $t2, $t1, looklock1
@@ -28,14 +45,48 @@ looklock1:                     #   see lock
   beq $t2, $0, looklock1       #   go back to looklock if fail
  
   #  store number in structure
+  lw  $s5, stack_top($0)										#############################
+  sw  $v0, 0($s5)											#############################
+  addiu $s5, $s5, 4											#############################
+  sw  $s5, stack_top($0)										#############################
 
   ori $t2, $0, 0              #   unlock 
   sw $t2, lockloc($0)
-#loop
+ 
+  ori $a0, $v0, 0											#############################
+  jal crc32												#############################
+  ori $t5, $0, 1
+  subu $s1, $s1, $t5											#############################
+  
+  bne $s1, $0, p0label											#############################
 halt
 
 org 0x0200 # Core 2 start
   #   while counter not at 256 and structure not empty
+
+
+  ori $s1, $0, 256
+  ori $s2, $0, 0
+  ori $s3, $0, 0xFFFF
+  ori $s4, $0, 0
+  ori $s5, $0, data
+  ori $t5, $0, 4
+  subu $s5, $s5, $t5
+
+	
+p1label:
+  lw  $t3, stack_top($0)
+  beq $t3, $s5, p1label 
+
+
+
+
+
+
+
+
+
+	
 looklock2:     #   see lock
   ll $t1, lockloc($0)
   ori $t2, $t1, 1              #   go back to looklock if locked
@@ -44,16 +95,37 @@ looklock2:     #   see lock
   beq $t2, $0, looklock2       #   go back to looklock if fail
 
 #     get value - lower 4 bytes
-
+  lw  $t3, stack_top($0)
+  lw  $t6, 0($t3)
+  ori $t5, $0, 4
+  subu $t3, $t3, $t5
+  sw  $t3, stack_top($0)
+   
   ori $t2, $0, 0              #   unlock 
   sw $t2, lockloc($0)
 
+  andi $t6, $t6, 0xFFFF
+
 #     update min
+  ori $a0, $s2, 0
+  ori $a1, $t6, 0
+  jal min
+  ori $s2, $v0, 0
 #     update max
+  ori $a0, $s3, 0
+  ori $a1, $t6, 0
+  jal max
+  ori $s3, $v0, 0
 #     update running avg
+  addu $s4, $s4, $t6
 
-#loop
-
+  
+  bne $s1, $0, p1label
+  ori $a0, $s4, 0
+  ori $a1, $0, 256
+  jal divide
+  ori $s4, $v0, 0
+	
 #store results any way store to some mem location or something
 halt
 
@@ -199,4 +271,7 @@ data:
   cfw 0
   cfw 0
   cfw 0
+
+stack_top:
+  cfw data
   
