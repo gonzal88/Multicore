@@ -16,15 +16,18 @@
 #########
 
 org 0x0000 # Core 1 start
-#  while counter not at 256
+#  counter starts at 256
+#  while counter not at 0
   #   if structure not full
-  #     generate number
+  #     produce number
 looklock1:                     #   see lock
   ll $t1, lockloc($0)
   ori $t2, $t1, 1              #   go back to looklock if locked
   beq $t2, $t1, looklock1
   sc $t2, lockloc($0)          #   try set lock
   beq $t2, $0, looklock1       #   go back to looklock if fail
+ 
+  #  store number in structure
 
   ori $t2, $0, 0              #   unlock 
   sw $t2, lockloc($0)
@@ -185,3 +188,15 @@ lockloc:
   cfw 0x0000
 seed:
   cfw 0x0000
+data:
+  cfw 0
+  cfw 0
+  cfw 0
+  cfw 0
+  cfw 0
+  cfw 0
+  cfw 0
+  cfw 0
+  cfw 0
+  cfw 0
+  
