@@ -61,6 +61,10 @@ looklock1:                     #   see lock
   bne $s1, $0, p0label											#############################
 halt
 
+
+
+
+
 org 0x0200 # Core 2 start
   #   while counter not at 256 and structure not empty
   ori $29, $0, 0xFFFC
