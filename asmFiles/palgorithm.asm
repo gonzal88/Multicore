@@ -24,7 +24,7 @@ org 0x0000 # Core 1 start
   ori $s1, $0, 256											#############################
   ori $t5, $0, 4
   ori $s2, $0, data											#############################
-  sub $s3, $s2, $t5											#############################
+  subu $s3, $s2, $t5											#############################
   addi $s4, $s2, 40											#############################
   lw  $a0, seed($0)											#############################
   jal crc32												#############################
@@ -46,8 +46,8 @@ looklock1:                     #   see lock
  
   #  store number in structure
   lw  $s5, stack_top($0)										#############################
+  addiu $s5, $s5, 4                     #############################
   sw  $v0, 0($s5)											#############################
-  addiu $s5, $s5, 4											#############################
   sw  $s5, stack_top($0)										#############################
 
   ori $t2, $0, 0              #   unlock 
@@ -63,7 +63,7 @@ halt
 
 org 0x0200 # Core 2 start
   #   while counter not at 256 and structure not empty
-
+  ori $29, $0, 0xFFFC
 
   ori $s1, $0, 256
   ori $s2, $0, 0
@@ -77,14 +77,6 @@ org 0x0200 # Core 2 start
 p1label:
   lw  $t3, stack_top($0)
   beq $t3, $s5, p1label 
-
-
-
-
-
-
-
-
 
 	
 looklock2:     #   see lock
@@ -119,7 +111,8 @@ looklock2:     #   see lock
 #     update running avg
   addu $s4, $s4, $t6
 
-  
+  ori $t5, $0, 1
+  subu $s1, $s1, $t5
   bne $s1, $0, p1label
   ori $a0, $s4, 0
   ori $a1, $0, 256
@@ -127,6 +120,9 @@ looklock2:     #   see lock
   ori $s4, $v0, 0
 	
 #store results any way store to some mem location or something
+  sw $s3, minresult($0)
+  sw $s2, maxresult($0)
+  sw $s4, avgresult($0)
 halt
 
 
@@ -274,4 +270,10 @@ data:
 
 stack_top:
   cfw data
-  
+
+minresult:
+  cfw 0
+maxresult:
+  cfw 0
+avgresult:
+  cfw 0  
