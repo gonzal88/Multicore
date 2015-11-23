@@ -25,7 +25,7 @@ org 0x0000 # Core 1 start
   ori $t5, $0, 4
   ori $s2, $0, data											#############################
   subu $s3, $s2, $t5											#############################
-  addi $s4, $s2, 40											#############################
+  addiu $s4, $s2, 36											#############################
   lw  $a0, seed($0)											#############################
   jal crc32												#############################
 
@@ -60,7 +60,6 @@ looklock1:                     #   see lock
   
   bne $s1, $0, p0label											#############################
 halt
-
 
 
 
@@ -102,15 +101,15 @@ looklock2:     #   see lock
 
   andi $t6, $t6, 0xFFFF
 
-#     update min
+#     update max
   ori $a0, $s2, 0
   ori $a1, $t6, 0
-  jal min
+  jal max
   ori $s2, $v0, 0
-#     update max
+#     update min
   ori $a0, $s3, 0
   ori $a1, $t6, 0
-  jal max
+  jal min
   ori $s3, $v0, 0
 #     update running avg
   addu $s4, $s4, $t6
@@ -118,6 +117,7 @@ looklock2:     #   see lock
   ori $t5, $0, 1
   subu $s1, $s1, $t5
   bne $s1, $0, p1label
+
   ori $a0, $s4, 0
   ori $a1, $0, 256
   jal divide
@@ -259,7 +259,7 @@ divrtn:
 lockloc:
   cfw 0x0000
 seed:
-  cfw 0x0000
+  cfw 0x0001
 data:
   cfw 0
   cfw 0
@@ -273,7 +273,7 @@ data:
   cfw 0
 
 stack_top:
-  cfw data
+  cfw seed # should start one location behind address of data
 
 minresult:
   cfw 0
