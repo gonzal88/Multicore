@@ -20,12 +20,11 @@ module dcache (
 );
     import cpu_types_pkg::*;
 
-    typedef enum logic [3:0] {IDLE, WB1, WB2, UPDATE1, UPDATE2, FLUSHB1W1, FLUSHB1W2, FLUSHB2W1, FLUSHB2W2, FLUSHW_HIT} StateType;
+    typedef enum logic [3:0] {IDLE, WB1, WB2, UPDATE1, UPDATE2, FLUSHB1W1, FLUSHB1W2, FLUSHB2W1, FLUSHB2W2} StateType;
     StateType curr_state;
     StateType next_state;
    parameter CPUID = 0;
    dcachef_t dcache_sel;
-//, next_dcache_sel;
 
     word_t block1_data1 [7:0], block1_data2 [7:0], block2_data1 [7:0], block2_data2 [7:0];
     word_t next_block1_data1, next_block1_data2, next_block2_data1, next_block2_data2;
@@ -45,20 +44,20 @@ module dcache (
     logic next_recent_block;
 
     logic hit;
-   logic  hit1;
-   logic  hit2;
+    logic hit1;
+    logic hit2;
    
-    word_t hit_counter, hit_counter_next;
+    //word_t hit_counter, hit_counter_next;
     logic [2:0] flush_idx_count;
     logic [2:0] flush_idx_count_next;
 
     assign dcache_sel = dcachef_t'(dcif.dmemaddr); 
     
-   assign hit1 = ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx]) ? 1'b1 : 1'b0; // || ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx])) ? 1'b1 : 1'b0 ;
-   assign dcif.dhit = hit && (dcif.dmemWEN || dcif.dmemREN);
-   assign hit = hit1 || hit2;
+    assign hit1 = ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx]) ? 1'b1 : 1'b0; // || ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx])) ? 1'b1 : 1'b0 ;
+    assign dcif.dhit = hit && (dcif.dmemWEN || dcif.dmemREN);
+    assign hit = hit1 || hit2;
    
-   assign hit2 = ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx]) ? 1'b1 : 1'b0;
+    assign hit2 = ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx]) ? 1'b1 : 1'b0;
    
     always_ff @(posedge CLK or negedge nRST) begin
         if (!nRST) begin
@@ -74,8 +73,6 @@ module dcache (
             block1_dirty <= '{default:1'b0};
             block2_dirty <= '{default:1'b0};
             recent_block <= '{default:1'b1};
-	    //dcache_sel <= 0;
-            hit_counter <= 32'b0;
             flush_idx_count <= 3'd0;
         end else begin
             curr_state <= next_state;
@@ -90,55 +87,34 @@ module dcache (
             block1_dirty[dcache_sel.idx] <= next_block1_dirty;
             block2_dirty[dcache_sel.idx] <= next_block2_dirty;
             recent_block[dcache_sel.idx] <= next_recent_block;
-	    //dcache_sel <= next_dcache_sel;
-            hit_counter <= hit_counter_next;
             flush_idx_count <= flush_idx_count_next;
         end
     end // always_ff @
 
     always_comb begin
-       flush_idx_count_next = flush_idx_count;
+        flush_idx_count_next = flush_idx_count;
         casez (curr_state)
-	  
-	      IDLE: begin
-                //if (!hit && (dcif.dmemWEN) && !((block1_dirty[dcache_sel.idx] && !recent_block[dcache_sel.idx]) || (block2_dirty[dcache_sel.idx] && recent_block[dcache_sel.idx]))) begin //miss and not dirty
-		if (!hit && (dcif.dmemWEN || dcif.dmemREN) && !((block1_dirty[dcache_sel.idx] && recent_block[dcache_sel.idx]) || (block2_dirty[dcache_sel.idx] && !recent_block[dcache_sel.idx]))) begin //miss and not dirty
-                   hit_counter_next = hit_counter ;
+          IDLE: begin
+                if (!hit && (dcif.dmemWEN || dcif.dmemREN) && !((block1_dirty[dcache_sel.idx] && recent_block[dcache_sel.idx]) || (block2_dirty[dcache_sel.idx] && !recent_block[dcache_sel.idx]))) begin //miss and not dirty
                     next_state =  UPDATE1;
-		    //next_dcache_sel = dcachef_t'(dcif.dmemaddr);
-                //end else if (!hit && (dcif.dmemREN) && (block1_dirty[dcache_sel.idx]  || block2_dirty[dcache_sel.idx] )) begin //miss and dirty
-		end else if (!hit && (dcif.dmemWEN || dcif.dmemREN) && (block1_dirty[dcache_sel.idx] && recent_block[dcache_sel.idx]) || (block2_dirty[dcache_sel.idx] && !recent_block[dcache_sel.idx])) begin //miss and dirty
-                   hit_counter_next = hit_counter ;
+                end else if (!hit && (dcif.dmemWEN || dcif.dmemREN) && (block1_dirty[dcache_sel.idx] && recent_block[dcache_sel.idx]) || (block2_dirty[dcache_sel.idx] && !recent_block[dcache_sel.idx])) begin //miss and dirty
                     next_state = WB1;
-		   //next_dcache_sel = dcachef_t'(dcif.dmemaddr);
                 end else if (dcif.halt) begin
-                    hit_counter_next = hit_counter;
                     next_state = FLUSHB1W1;
-		    //next_dcache_sel = dcache_sel;
                 end else begin
-                    if (hit && (dcif.dmemWEN || dcif.dmemREN)) begin
-                        hit_counter_next = hit_counter + 1; // how to increment only on an initial hit? we can always increment in idle but decrement if we miss. but then the count maybe inflated if the data request doesn't change
-                    end else begin
-                        hit_counter_next = hit_counter;
-                    end
                     next_state = IDLE;
-		   //next_dcache_sel = dcachef_t'(dcif.dmemaddr);
                 end
             end
 
             UPDATE1: begin
-	        hit_counter_next = hit_counter;
                 if (!ccif.dwait[CPUID]) begin
                     next_state = UPDATE2;
-		    hit_counter_next = hit_counter - 1;
-		   
                 end else begin
                     next_state = UPDATE1;
                 end
             end
 
             UPDATE2: begin
-                hit_counter_next = hit_counter;
                 if (!ccif.dwait[CPUID]) begin
                     next_state = IDLE;
                 end else begin
@@ -147,7 +123,6 @@ module dcache (
             end
 
             WB1: begin
-                hit_counter_next = hit_counter;
                 if (!ccif.dwait[CPUID]) begin
                     next_state = WB2;
                 end else begin
@@ -156,7 +131,6 @@ module dcache (
             end
 
             WB2: begin
-                hit_counter_next = hit_counter;
                 if (!ccif.dwait[CPUID]) begin
                     next_state = UPDATE1;
                 end else begin
@@ -165,7 +139,6 @@ module dcache (
             end
 
             FLUSHB1W1: begin
-                hit_counter_next = hit_counter;
                 if (!ccif.dwait[CPUID]) begin
                     next_state = FLUSHB1W2;
                 end else begin
@@ -174,7 +147,6 @@ module dcache (
             end
 
             FLUSHB1W2: begin
-                hit_counter_next = hit_counter;
                 if (!ccif.dwait[CPUID]) begin
                     next_state = FLUSHB2W1;
                 end else begin
@@ -183,7 +155,6 @@ module dcache (
             end
 
             FLUSHB2W1: begin
-                hit_counter_next = hit_counter;
                 if (!ccif.dwait[CPUID]) begin
                     next_state = FLUSHB2W2;
                 end else begin
@@ -192,25 +163,13 @@ module dcache (
             end
 
             FLUSHB2W2: begin
-                hit_counter_next = hit_counter;
-	        
                 if ((flush_idx_count != 3'd7) && (!ccif.dwait[CPUID])) begin 
                     next_state = FLUSHB1W1;
-		    flush_idx_count_next = flush_idx_count + 3'd1;
+                    flush_idx_count_next = flush_idx_count + 3'd1;
                 end else if ((flush_idx_count == 3'd7) && (!ccif.dwait[CPUID])) begin //flush_count or flush_count_next?
-                    next_state = FLUSHW_HIT;
-		    //flush_idx_count_next = flush_idx_count + 3'd1;
-                end else begin
-                    next_state = FLUSHB2W2;
-                end
-            end
-
-            FLUSHW_HIT: begin
-                hit_counter_next = hit_counter;
-                if (!ccif.dwait[CPUID]) begin
                     next_state = IDLE;
                 end else begin
-                    next_state = FLUSHW_HIT;
+                    next_state = FLUSHB2W2;
                 end
             end
         endcase
@@ -236,8 +195,6 @@ module dcache (
         next_block1_dirty = block1_dirty[dcache_sel.idx];
         next_block2_dirty = block2_dirty[dcache_sel.idx];
 
-        //flush_idx_count_next = flush_idx_count;
-
         casez(curr_state)
             IDLE: begin
                 ccif.dREN[CPUID] = 0;
@@ -250,8 +207,6 @@ module dcache (
 
                 next_block1_valid = block1_valid[dcache_sel.idx];
                 next_block2_valid = block2_valid[dcache_sel.idx];
-	        
-                //flush_idx_count_next = flush_idx_count;
 
                 if (dcif.dmemWEN && ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx])) begin //block 1 hit
                     if (dcache_sel.blkoff == 1'b0) begin // word 1
@@ -302,38 +257,37 @@ module dcache (
                 ccif.daddr[CPUID] = {dcif.dmemaddr[WORD_W-1:3], 1'b0, 2'b00}; // Could possibly also just leave byte offset as 00
 
                 if (recent_block[dcache_sel.idx] == 1) begin // if block 2 used most recently, evict block 1
-		   //if writing to word 1 write that from dmemstore instead
-		    if (!ccif.dwait[CPUID]) begin
-		      next_block1_data1 = ccif.dload[CPUID];
-		    end else begin
-                       next_block1_data1 = block1_data1[dcache_sel.idx];
-		    end
+                    if (!ccif.dwait[CPUID]) begin
+                        next_block1_data1 = ccif.dload[CPUID];
+                    end else begin
+                        next_block1_data1 = block1_data1[dcache_sel.idx];
+                    end
+
                     next_block1_data2 = block1_data2[dcache_sel.idx];
                     next_block2_data1 = block2_data1[dcache_sel.idx];
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
-                   next_block1_tag = block1_tag[dcache_sel.idx];
+                    next_block1_tag = block1_tag[dcache_sel.idx];
                     next_block2_tag = block2_tag[dcache_sel.idx];
 
-                   next_block1_valid = block1_valid[dcache_sel.idx];
-//0;//Correct,right?  Don't want to switch to hit in the middle of block (can also just not update tag until UPDATE2. or both.)
-                   next_block2_valid = block2_valid[dcache_sel.idx];
+                    next_block1_valid = block1_valid[dcache_sel.idx];
+                    next_block2_valid = block2_valid[dcache_sel.idx];
                 end else begin // else if block 1 used most recently evict block 2
                     next_block1_data1 = block1_data1[dcache_sel.idx];
                     next_block1_data2 = block1_data2[dcache_sel.idx];
-		    if (!ccif.dwait[CPUID]) begin
-		      next_block2_data1 = ccif.dload[CPUID];
-		    end else begin
-                       next_block2_data1 = block2_data1[dcache_sel.idx];
-		    end
+                    
+                    if (!ccif.dwait[CPUID]) begin
+                        next_block2_data1 = ccif.dload[CPUID];
+                    end else begin
+                        next_block2_data1 = block2_data1[dcache_sel.idx];
+                    end
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
                     next_block1_tag = block1_tag[dcache_sel.idx];
-                   next_block2_tag = block2_tag[dcache_sel.idx];
+                    next_block2_tag = block2_tag[dcache_sel.idx];
 
-                   next_block1_valid = block1_valid[dcache_sel.idx];
-                   next_block2_valid = block1_valid[dcache_sel.idx];
-//0;
+                    next_block1_valid = block1_valid[dcache_sel.idx];
+                    next_block2_valid = block1_valid[dcache_sel.idx];
                 end     
 
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
@@ -348,15 +302,17 @@ module dcache (
 
                 if (recent_block[dcache_sel.idx] == 1) begin // if block 2 used most recently, evict block 1
                     next_block1_data1 = block1_data1[dcache_sel.idx];
-		    if (!ccif.dwait[CPUID]) begin
-		      next_block1_data2 = ccif.dload[CPUID];
-		      next_block1_tag = dcache_sel.tag;
-		      next_block1_valid = 1;
-		    end else begin
-                      next_block1_data2 = block1_data2[dcache_sel.idx];
-		      next_block1_tag = block1_tag[dcache_sel.idx];
-		      next_block1_valid = block1_valid[dcache_sel.idx];
-		    end
+
+                    if (!ccif.dwait[CPUID]) begin
+                        next_block1_data2 = ccif.dload[CPUID];
+                        next_block1_tag = dcache_sel.tag;
+                        next_block1_valid = 1;
+                    end else begin
+                        next_block1_data2 = block1_data2[dcache_sel.idx];
+                        next_block1_tag = block1_tag[dcache_sel.idx];
+                        next_block1_valid = block1_valid[dcache_sel.idx];
+                    end
+
                     next_block2_data1 = block2_data1[dcache_sel.idx];
                     next_block2_data2 = block2_data2[dcache_sel.idx];
 
@@ -367,21 +323,20 @@ module dcache (
                     next_block1_data1 = block1_data1[dcache_sel.idx];
                     next_block1_data2 = block1_data2[dcache_sel.idx];
                     next_block2_data1 = block2_data1[dcache_sel.idx];
-		    if (!ccif.dwait[CPUID]) begin
-		      next_block2_data2 = ccif.dload[CPUID];
-		      next_block2_tag = dcache_sel.tag;
-		      next_block2_valid = 1;
-		    end else begin
-                      next_block2_data2 = block2_data2[dcache_sel.idx];
-		      next_block2_tag = block2_tag[dcache_sel.idx];
-		      next_block2_valid = block2_valid[dcache_sel.idx];
-		    end
+                    if (!ccif.dwait[CPUID]) begin
+                        next_block2_data2 = ccif.dload[CPUID];
+                        next_block2_tag = dcache_sel.tag;
+                        next_block2_valid = 1;
+                    end else begin
+                        next_block2_data2 = block2_data2[dcache_sel.idx];
+                        next_block2_tag = block2_tag[dcache_sel.idx];
+                        next_block2_valid = block2_valid[dcache_sel.idx];
+                    end
 
                     next_block1_tag = block1_tag[dcache_sel.idx];
 
                     next_block1_valid = block1_valid[dcache_sel.idx];
-
-                end     
+                end
 
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
@@ -448,6 +403,7 @@ module dcache (
                 end else begin
                     ccif.dWEN[CPUID] = 0;
                 end
+
                 ccif.dstore[CPUID] = block1_data1[flush_idx_count];
                 ccif.daddr[CPUID] = {block1_tag[flush_idx_count], flush_idx_count, 1'b0, 2'b00};
 
@@ -473,6 +429,7 @@ module dcache (
                 end else begin
                     ccif.dWEN[CPUID] = 0;
                 end
+
                 ccif.dstore[CPUID] = block1_data2[flush_idx_count];
                 ccif.daddr[CPUID] = {block1_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
 
@@ -483,17 +440,16 @@ module dcache (
 
                 next_block1_tag = block1_tag[flush_idx_count];
                 next_block2_tag = block2_tag[flush_idx_count];
-	        if (!ccif.dwait[CPUID]) begin
-		   next_block1_valid = 0;
-		end else begin
-		   next_block1_valid = block1_valid[flush_idx_count];
-		end
+
+                if (!ccif.dwait[CPUID]) begin
+                    next_block1_valid = 0;
+                end else begin
+                    next_block1_valid = block1_valid[flush_idx_count];
+                end
                 next_block2_valid = block2_valid[flush_idx_count];
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
-                next_block2_dirty = block2_dirty[flush_idx_count]; 
-
-                //flush_idx_count_next = flush_idx_count + 3'd1;
+                next_block2_dirty = block2_dirty[flush_idx_count];
             end
 
             FLUSHB2W1: begin
@@ -503,6 +459,7 @@ module dcache (
                 end else begin
                     ccif.dWEN[CPUID] = 0;
                 end
+
                 ccif.dstore[CPUID] = block2_data1[flush_idx_count];
                 ccif.daddr[CPUID] = {block2_tag[flush_idx_count], flush_idx_count, 1'b0, 2'b00};
 
@@ -528,6 +485,7 @@ module dcache (
                 end else begin
                     ccif.dWEN[CPUID] = 0;
                 end
+
                 ccif.dstore[CPUID] = block2_data2[flush_idx_count];
                 ccif.daddr[CPUID] = {block2_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
 
@@ -541,144 +499,14 @@ module dcache (
 
                 next_block1_valid = block1_valid[flush_idx_count];
                 if (!ccif.dwait[CPUID]) begin
-		   next_block2_valid = 0;
-		end else begin
-		   next_block2_valid = block2_valid[flush_idx_count];
-		end
+                    next_block2_valid = 0;
+                end else begin
+                    next_block2_valid = block2_valid[flush_idx_count];
+                end
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
-                next_block2_dirty = block2_dirty[flush_idx_count]; 
-
-                
+                next_block2_dirty = block2_dirty[flush_idx_count];
             end
-
-	    /*
-	     FLUSHB1W1: begin
-                ccif.dREN[CPUID] = 0;
-                if (block1_valid[flush_idx_count]) begin
-                    ccif.dWEN[CPUID] = 1;
-                end else begin
-                    ccif.dWEN[CPUID] = 0;
-                end
-                ccif.dstore[CPUID] = block1_data1[flush_idx_count];
-                ccif.daddr[CPUID] = {block1_tag[flush_idx_count], flush_idx_count, 1'b0, 2'b00};
-
-                next_block1_data1 = block1_data1[dcache_sel.idx];
-                next_block1_data2 = block1_data2[dcache_sel.idx];
-                next_block2_data1 = block2_data1[dcache_sel.idx];
-                next_block2_data2 = block2_data2[dcache_sel.idx];
-
-                next_block1_tag = block1_tag[dcache_sel.idx];
-                next_block2_tag = block2_tag[dcache_sel.idx];
-
-                next_block1_valid = block1_valid[dcache_sel.idx];
-                next_block2_valid = block2_valid[dcache_sel.idx];
-
-                next_block1_dirty = block1_dirty[dcache_sel.idx];
-                next_block2_dirty = block2_dirty[dcache_sel.idx];                
-            end
-
-            FLUSHB1W2: begin
-                ccif.dREN[CPUID] = 0;
-                if (block1_valid[flush_idx_count]) begin
-                    ccif.dWEN[CPUID] = 1;
-                end else begin
-                    ccif.dWEN[CPUID] = 0;
-                end
-                ccif.dstore[CPUID] = block1_data2[flush_idx_count];
-                ccif.daddr[CPUID] = {block1_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
-
-                next_block1_data1 = block1_data1[dcache_sel.idx];
-                next_block1_data2 = block1_data2[dcache_sel.idx];
-                next_block2_data1 = block2_data1[dcache_sel.idx];
-                next_block2_data2 = block2_data2[dcache_sel.idx];
-
-                next_block1_tag = block1_tag[dcache_sel.idx];
-                next_block2_tag = block2_tag[dcache_sel.idx];
-
-                next_block1_valid = 0;
-                next_block2_valid = block2_valid[dcache_sel.idx];
-
-                next_block1_dirty = block1_dirty[dcache_sel.idx];
-                next_block2_dirty = block2_dirty[dcache_sel.idx];
-
-                //flush_idx_count_next = flush_idx_count + 3'd1;
-            end
-
-            FLUSHB2W1: begin
-                ccif.dREN[CPUID] = 0;
-                if (block2_valid[flush_idx_count]) begin
-                    ccif.dWEN[CPUID] = 1;
-                end else begin
-                    ccif.dWEN[CPUID] = 0;
-                end
-                ccif.dstore[CPUID] = block2_data1[flush_idx_count];
-                ccif.daddr[CPUID] = {block2_tag[flush_idx_count], flush_idx_count, 1'b0, 2'b00};
-
-                next_block1_data1 = block1_data1[dcache_sel.idx];
-                next_block1_data2 = block1_data2[dcache_sel.idx];
-                next_block2_data1 = block2_data1[dcache_sel.idx];
-                next_block2_data2 = block2_data2[dcache_sel.idx];
-
-                next_block1_tag = block1_tag[dcache_sel.idx];
-                next_block2_tag = block2_tag[dcache_sel.idx];
-
-                next_block1_valid = block1_valid[dcache_sel.idx];
-                next_block2_valid = block2_valid[dcache_sel.idx];
-
-                next_block1_dirty = block1_dirty[dcache_sel.idx];
-                next_block2_dirty = block2_dirty[dcache_sel.idx];
-            end
-
-            FLUSHB2W2: begin
-                ccif.dREN[CPUID] = 0;
-                if (block2_valid[flush_idx_count]) begin
-                    ccif.dWEN[CPUID] = 1;
-                end else begin
-                    ccif.dWEN[CPUID] = 0;
-                end
-                ccif.dstore[CPUID] = block2_data2[flush_idx_count];
-                ccif.daddr[CPUID] = {block2_tag[flush_idx_count], flush_idx_count, 1'b1, 2'b00};
-
-                next_block1_data1 = block1_data1[dcache_sel.idx];
-                next_block1_data2 = block1_data2[dcache_sel.idx];
-                next_block2_data1 = block2_data1[dcache_sel.idx];
-                next_block2_data2 = block2_data2[dcache_sel.idx];
-
-                next_block1_tag = block1_tag[dcache_sel.idx];
-                next_block2_tag = block2_tag[dcache_sel.idx];
-
-                next_block1_valid = block1_valid[dcache_sel.idx];
-                next_block2_valid = 0;
-
-                next_block1_dirty = block1_dirty[dcache_sel.idx];
-                next_block2_dirty = block2_dirty[dcache_sel.idx];
-
-                
-            end
-	     */
-	  
-            FLUSHW_HIT: begin
-                ccif.dREN[CPUID] = 0;
-                ccif.dWEN[CPUID] = 1;
-                ccif.dstore[CPUID] = hit_counter;
-                ccif.daddr[CPUID] = 32'h3100;
-
-                next_block1_data1 = block1_data1[flush_idx_count];
-                next_block1_data2 = block1_data2[flush_idx_count];
-                next_block2_data1 = block2_data1[flush_idx_count];
-                next_block2_data2 = block2_data2[flush_idx_count];
-
-                next_block1_tag = block1_tag[flush_idx_count];
-                next_block2_tag = block2_tag[flush_idx_count];
-
-                next_block1_valid = block1_valid[flush_idx_count];
-                next_block2_valid = block2_valid[flush_idx_count];
-
-                next_block1_dirty = block1_dirty[flush_idx_count];
-                next_block2_dirty = block2_dirty[flush_idx_count]; 
-            end
-
         endcase
     end
 
@@ -701,8 +529,7 @@ module dcache (
     //assign dcif.dmemload
     always_comb begin
         dcif.dmemload = block1_data1[dcache_sel.idx];
-        //if (hit && (dcif.dmemREN || dcif.dmemWEN)&& (block2_tag[dcache_sel.idx] == dcache_sel.tag)) begin
-	if ((block2_tag[dcache_sel.idx] == dcache_sel.tag)) begin
+        if ((block2_tag[dcache_sel.idx] == dcache_sel.tag)) begin
             if (dcache_sel.blkoff == 1'b1) begin
                 dcif.dmemload = block2_data2[dcache_sel.idx];
             end else begin
