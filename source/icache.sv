@@ -77,7 +77,7 @@ module icache (
 
       UPDATE: begin
         update_block = 1'b1;
-	
+  
         if (!ccif.iwait[CPUID]) begin // no longer waiting for RAM
           next_block_data = ccif.iload;
           next_block_tag = icache_sel.tag;
@@ -85,8 +85,8 @@ module icache (
 
           next_read_state = IDLE;
         end else if (!dcif.imemREN) begin
-	   next_read_state = IDLE;
-	end else begin // else keep waiting for the RAM
+          next_read_state = IDLE;
+        end else begin // else keep waiting for the RAM
           next_read_state = UPDATE;
         end
       end

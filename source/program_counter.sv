@@ -9,11 +9,12 @@ module program_counter(
 	  );
    
    import cpu_types_pkg::*;
+   parameter PC_INIT = 0;
    
    always_ff @(posedge CLK or negedge nRST) begin
       
       if (!nRST) begin
-	 pcif.PCcurr <= 32'b0;
+	 pcif.PCcurr <= PC_INIT;
       end
       
       else begin

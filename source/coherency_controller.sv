@@ -36,7 +36,8 @@ module coherency_controller (
         casez (curr_state)
             IDLE: begin
                 if (ccif.iREN[cpu_sel] || ccif.iREN[~cpu_sel]) begin
-                    next_state = IST;
+                    //next_state = IST;
+                    //next_cpu_sel = ~cpu_sel;
                 end else if (ccif.dWEN[cpu_sel] || ccif.dWEN[~cpu_sel]) begin
 		   /* if (ccif.dWEN[cpu_sel]) begin
 		      next_cpu_sel = 0;
@@ -44,13 +45,13 @@ module coherency_controller (
 		      next_cpu_sel = 1;
 		    end
 		     */ next_state = WST;
-		end else if (ccif.dREN[cpu_sel] || ccif.dREN[~cpu_sel]) begin
-		    if (ccif.dREN[cpu_sel]) begin
-		      next_cpu_sel = 0;
-		    end else begin
-		      next_cpu_sel = 1;
-		    end
-		      next_state = SNOOP;
+		        end else if (ccif.dREN[cpu_sel] || ccif.dREN[~cpu_sel]) begin
+		            if (ccif.dREN[cpu_sel]) begin
+		                next_cpu_sel = 0;
+		            end else begin
+		                next_cpu_sel = 1;
+		            end
+		            next_state = SNOOP;
                 end else begin
                     next_state = IDLE;
                 end
@@ -61,7 +62,7 @@ module coherency_controller (
                     next_state = IST;
                 end else begin
                     next_state = IDLE;
-		    next_cpu_sel = ~cpu_sel;
+		            next_cpu_sel = ~cpu_sel;
 		end
             end
 
@@ -70,7 +71,7 @@ module coherency_controller (
                     next_state = WST;
                 end else begin
                     next_state = IDLE;
-		end
+		        end
             end
 
             SNOOP: begin
@@ -94,8 +95,8 @@ module coherency_controller (
                     next_state = C2C;
                 end else begin
                     next_state = IDLE;
-		    next_cpu_sel = ~cpu_sel;
-		end
+		            //next_cpu_sel = ~cpu_sel;
+		        end
             end
 
 
@@ -116,6 +117,29 @@ module coherency_controller (
         ccif.dload = 0;
         casez (curr_state)
             IDLE: begin
+                if (ccif.iREN[0]) begin
+                    ccif.ramaddr = ccif.iaddr[0];
+                    ccif.ramREN = ccif.iREN[0];
+                    ccif.iload[0] = ccif.ramload;
+                    if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
+                        ccif.iwait[0] = 1'b0;
+                    end else if (ccif.ramstate == FREE) begin //FREE
+                        ccif.iwait[0] = 1'b0;
+                    end else begin //BUSY, ERROR and default
+                        ccif.iwait[0] = 1'b1;
+                    end
+                end else if (ccif.iREN[1]) begin
+                    ccif.ramaddr = ccif.iaddr[1];
+                    ccif.ramREN = ccif.iREN[1];
+                    ccif.iload[1] = ccif.ramload;
+                    if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
+                        ccif.iwait[1] = 1'b0;
+                    end else if (ccif.ramstate == FREE) begin //FREE
+                        ccif.iwait[1] = 1'b0;
+                    end else begin //BUSY, ERROR and default
+                        ccif.iwait[1] = 1'b1;
+                    end
+                end
                 
             end
 
@@ -131,7 +155,7 @@ module coherency_controller (
                     end else begin //BUSY, ERROR and default
                         ccif.iwait[cpu_sel] = 1'b1;
                     end
-                end else begin
+                end else if (ccif.iREN[cpu_sel]) begin
                     ccif.ramaddr = ccif.iaddr[cpu_sel];
                     ccif.ramREN = ccif.iREN[cpu_sel];
                     ccif.iload[cpu_sel] = ccif.ramload;
@@ -141,6 +165,17 @@ module coherency_controller (
                         ccif.iwait[cpu_sel] = 1'b0;
                     end else begin //BUSY, ERROR and default
                         ccif.iwait[cpu_sel] = 1'b1;
+                    end
+                end else begin
+                    ccif.ramaddr = ccif.iaddr[~cpu_sel];
+                    ccif.ramREN = ccif.iREN[~cpu_sel];
+                    ccif.iload[~cpu_sel] = ccif.ramload;
+                    if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
+                        ccif.iwait[~cpu_sel] = 1'b0;
+                    end else if (ccif.ramstate == FREE) begin //FREE
+                        ccif.iwait[~cpu_sel] = 1'b0;
+                    end else begin //BUSY, ERROR and default
+                        ccif.iwait[~cpu_sel] = 1'b1;
                     end
                 end
             end
