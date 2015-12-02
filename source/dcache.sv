@@ -331,7 +331,7 @@ module dcache (
                 
 
                 if ((snoop1_tag[snoop_sel.idx] == snoop_sel.tag) && snoop1_valid[snoop_sel.idx] ) begin
-                    ccif.daddr[CPUID] = {ccif.ccsnoopaddr[WORD_W-1:3], 1'b0, 2'b00};
+                    ccif.daddr[CPUID] = {ccif.ccsnoopaddr[CPUID][WORD_W-1:3], 1'b0, 2'b00};
                     ccif.dstore[CPUID] = block1_data1[snoop_sel.idx];
                     ccif.dWEN[CPUID] = 1'b1;
                     if(snoop1_dirty[snoop_sel.idx]) begin
@@ -347,7 +347,7 @@ module dcache (
                         end
                     end
                 end else if ((snoop2_tag[snoop_sel.idx] == snoop_sel.tag) && snoop2_valid[snoop_sel.idx]) begin
-                    ccif.daddr[CPUID] = {ccif.ccsnoopaddr[WORD_W-1:3], 1'b0, 2'b00};
+                    ccif.daddr[CPUID] = {ccif.ccsnoopaddr[CPUID][WORD_W-1:3], 1'b0, 2'b00};
                     ccif.dstore[CPUID] = block2_data1[snoop_sel.idx];
                     ccif.dWEN[CPUID] = 1'b1;
                     if(snoop2_dirty[snoop_sel.idx]) begin
@@ -375,7 +375,7 @@ module dcache (
                 ccif.dREN[CPUID] = 1'b0;
                 ccif.dWEN[CPUID] = 1'b1;
                 if ((snoop1_tag[snoop_sel.idx] == snoop_sel.tag) && snoop1_valid[snoop_sel.idx] ) begin
-                    ccif.daddr[CPUID] = {ccif.ccsnoopaddr[WORD_W-1:3], 1'b1, 2'b00};
+                    ccif.daddr[CPUID] = {ccif.ccsnoopaddr[CPUID][WORD_W-1:3], 1'b1, 2'b00};
                     ccif.dstore[CPUID] = block1_data2[snoop_sel.idx];
                     if(snoop1_dirty[snoop_sel.idx]) begin
                         ccif.ccwrite[CPUID] = 1'b1;
@@ -390,7 +390,7 @@ module dcache (
                         end
                     end
                 end else if ((snoop2_tag[snoop_sel.idx] == snoop_sel.tag) && snoop2_valid[snoop_sel.idx]) begin
-                    ccif.daddr[CPUID] = {ccif.ccsnoopaddr[WORD_W-1:3], 1'b1, 2'b00};
+                    ccif.daddr[CPUID] = {ccif.ccsnoopaddr[CPUID][WORD_W-1:3], 1'b1, 2'b00};
                     ccif.dstore[CPUID] = block2_data2[snoop_sel.idx];
                     if(snoop2_dirty[snoop_sel.idx]) begin
                         ccif.ccwrite[CPUID] = 1'b1;

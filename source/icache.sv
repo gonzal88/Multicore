@@ -79,7 +79,7 @@ module icache (
         update_block = 1'b1;
   
         if (!ccif.iwait[CPUID]) begin // no longer waiting for RAM
-          next_block_data = ccif.iload;
+          next_block_data = ccif.iload[CPUID];
           next_block_tag = icache_sel.tag;
           next_block_valid = 1'b1;
 

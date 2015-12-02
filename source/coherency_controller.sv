@@ -46,8 +46,8 @@ module coherency_controller (
                 end else if (ccif.dWEN[~cpu_sel]) begin
                     next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE
                     next_state = WST;
-		        end else if (ccif.dREN[cpu_sel]) begin
-		            next_state = SNOOP;
+		end else if (ccif.dREN[cpu_sel]) begin
+		    next_state = SNOOP;
                 end else if (ccif.dREN[~cpu_sel]) begin
                     next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE
                     next_state = SNOOP;
@@ -114,35 +114,13 @@ module coherency_controller (
         ccif.ramaddr = 0;
         ccif.ramWEN = 0;
         ccif.ramREN = 0;
-        ccif.iwait = 0;
-        ccif.dwait = 0;
+        ccif.iwait = 2'b11;
+        ccif.dwait = 2'b11;
         ccif.iload = 0;
         ccif.dload = 0;
         casez (curr_state)
             IDLE: begin
-                /*if (ccif.iREN[0]) begin
-                    ccif.ramaddr = ccif.iaddr[0];
-                    ccif.ramREN = ccif.iREN[0];
-                    ccif.iload[0] = ccif.ramload;
-                    if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                        ccif.iwait[0] = 1'b0;
-                    end else if (ccif.ramstate == FREE) begin //FREE
-                        ccif.iwait[0] = 1'b0;
-                    end else begin //BUSY, ERROR and default
-                        ccif.iwait[0] = 1'b1;
-                    end
-                end else if (ccif.iREN[1]) begin
-                    ccif.ramaddr = ccif.iaddr[1];
-                    ccif.ramREN = ccif.iREN[1];
-                    ccif.iload[1] = ccif.ramload;
-                    if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
-                        ccif.iwait[1] = 1'b0;
-                    end else if (ccif.ramstate == FREE) begin //FREE
-                        ccif.iwait[1] = 1'b0;
-                    end else begin //BUSY, ERROR and default
-                        ccif.iwait[1] = 1'b1;
-                    end
-                end*/ 
+               
             end
 
             IST: begin
@@ -158,7 +136,7 @@ module coherency_controller (
                 end
             end
 
-            WST: begin
+            WST: beginf
                 ccif.ramstore = ccif.dstore[cpu_sel];
                 ccif.ramWEN = ccif.dWEN[cpu_sel];
                 ccif.ramaddr = ccif.daddr[cpu_sel];
