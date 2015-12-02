@@ -24,9 +24,10 @@ module dcache (
 /////////////////////////////////////////////////////////////////////////////////////////
     StateType curr_state;
     StateType next_state;
-   parameter CPUID = 0;
-   dcachef_t dcache_sel;
-   dcachef_t snoop_sel;
+    
+    parameter CPUID = 0;
+    dcachef_t dcache_sel;
+    dcachef_t snoop_sel;
 
     word_t block1_data1 [7:0], block1_data2 [7:0], block2_data1 [7:0], block2_data2 [7:0];
     word_t next_block1_data1, next_block1_data2, next_block2_data1, next_block2_data2;
