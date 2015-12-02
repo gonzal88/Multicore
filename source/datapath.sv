@@ -27,6 +27,8 @@ module datapath (
 );
   // import types
    import cpu_types_pkg::*;
+   parameter PC_INIT = 0;
+   
    control_unit_if cuif();
    register_file_if rfif();
    alu_if alif();
@@ -43,7 +45,7 @@ module datapath (
    register_file rf (CLK, nRST, rfif);
    alu au (alif);
    control_unit control (cuif);
-   program_counter pc (pcif, CLK, nRST);
+   program_counter #(.PC_INIT(PC_INIT)) pc (pcif, CLK, nRST);
    extender ext (eif);
    ifid fd (CLK, nRST, ifid);
    idex de (CLK, nRST, idex);
@@ -59,7 +61,6 @@ module datapath (
      
    
    // pc init
-   parameter PC_INIT = 0;
    word_t      MtR_out;               //MemiftoReg mux output
    word_t      ALUSrc_out;            //ALUSrc mux output
    word_t      Mux_lui;
