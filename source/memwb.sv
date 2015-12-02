@@ -52,6 +52,22 @@ module memwb
 	    mwif.dload_o <= mwif.dload_i;
             mwif.target_o <= mwif.target_i;
 	    mwif.ALUsource_o <= mwif.ALUsource_i;
+	 end // if (mwif.enable)
+	 else begin
+	    mwif.npc_o <= mwif.npc_o;
+	    mwif.Addr_o <= mwif.Addr_o;
+	    mwif.Mem_o <= mwif.Mem_o;
+	    mwif.RegW_o <= mwif.RegW_o;
+	    mwif.RegDest_o <= mwif.RegDest_o;
+	    mwif.halt_o <= mwif.halt_o;
+	    mwif.alu_out_o <= mwif.alu_out_o;
+	    mwif.opcode_o <= mwif.opcode_o;
+	    mwif.rs_o <= mwif.rs_o;
+	    mwif.rd_o <= mwif.rd_o;
+	    mwif.rt_o <= mwif.rt_o;
+	    mwif.dload_o <= mwif.dload_o;
+            mwif.target_o <= mwif.target_o;
+	    mwif.ALUsource_o <= mwif.ALUsource_o;
 	 end
       end
    end

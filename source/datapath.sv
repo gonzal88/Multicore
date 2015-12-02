@@ -77,11 +77,9 @@ module datapath (
    assign rtype = r_t'(ifid.iload_o);
    assign jtype = j_t'(ifid.iload_o);
    assign itype = i_t'(ifid.iload_o);
-   
-   assign ifid.iload_i = dpif.dhit && !hazard_enable ? 0: dpif.imemload;
 
+   assign  ifid.iload_i = dpif.imemload;
    
-
    always_comb begin
       if((cuif.jump || cuif.jr) && !(branch_out && (idex.opcode_o == BEQ || idex.opcode_o == BNE))) begin
 	 next_PC = (rtype.opcode == RTYPE && rtype.funct == JR) ? rfif.rdat1 : ((itype.opcode == J || itype.opcode == JAL) ? {npc[31:28], jtype.addr, 2'b0} : npc);
@@ -97,11 +95,25 @@ module datapath (
 
    
    
-   assign ifid.iien = !hazard_enable;
-   assign ifid.flush = cuif.jump || branch_out || cuif.jr;
+   //assign ifid.iien = !hazard_enable ? dpif.ihit: dpif.dhit;
+   always_comb begin
+      if (exme.opcode_o == LW || exme.opcode_o == SW) begin
+	 ifid.iien = dpif.dhit && dpif.ihit && !hazard_enable;
+	 
+      end
+      else begin
+	 ifid.iien = !hazard_enable && dpif.ihit;
+      end
+   end
+   //assign ifid.iien = !hazard_enable ? dpif.ihit : 1'b0;
+   
+   //assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit || dpif.dhit : 1'b0;
+   assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit : ((dpif.dhit && !dpif.ihit) || mem.halt_o);
    assign ifid.npc_i = npc;
    assign ifid.dload_i = dpif.dmemload;
-   assign pcif.PCen = ((dpif.ihit && !dpif.dhit) || branch_out || cuif.jump || cuif.jr) && !hazard_enable;
+   assign pcif.PCen = ifid.iien || branch_out;
+   //assign pcif.PCen = !hazard_enable ? dpif.ihit : dpif.dhit;
+   
    assign dpif.imemaddr = pcif.PCcurr;
    assign pcif.PCnext = next_PC;
    //assign dpif.halt = mem.halt_o;
@@ -116,7 +128,7 @@ module datapath (
    
    //////////////////////////////////////////////////////////////
    //DATAPATH
-   assign dpif.imemREN = 1'b1;
+   assign dpif.imemREN = dpif.halt ? 1'b0 : 1'b1;
    
    
    ///////////////////////////////////////////////////////////////////
@@ -157,10 +169,9 @@ module datapath (
    assign idex.rt_i = rtype.rt;
    assign idex.shamt_i = rtype.shamt;
    assign idex.dload_i = ifid.dload_o;
-   assign idex.flush = (ifid.iload_o == 0) || hazard_enable || branch_out;
-// || ifid.dload_o == 32'hBAD1BAD1;//
-   
-   
+   assign idex.enable = (exme.opcode_o == LW || exme.opcode_o == SW) && !mem.halt_o ? dpif.dhit : dpif.ihit; 
+   //assign idex.flush = (hazard_enable);
+   assign idex.flush = ((hazard_enable || branch_out) && (dpif.ihit && !dpif.dhit)) || mem.halt_o;
    
    
    always_comb begin
@@ -213,18 +224,35 @@ module datapath (
    assign exme.DRen_i = idex.DRen_o;
    assign exme.Branch_i = idex.Branch_o;
    assign exme.Mem_i = idex.Mem_o;
-   assign exme.Jaddr_i = idex.Jaddr_o;
+   //assign exme.Jaddr_i = idex.Jaddr_o;
    assign exme.npc_i = idex.npc_o;
    assign exme.extout_i = {idex.extout_o, 2'b00} + idex.npc_o;
    assign exme.rs_i = idex.rs_o;
    assign exme.rd_i = idex.rd_o;
-   assign exme.ALUsource_i = exme.ALUsource_o;
+   assign exme.ALUsource_i = idex.ALUsource_o;
    assign exme.rt_i = idex.rt_o;
    assign exme.dload_i = idex.dload_o;
-   assign exme.enable = exme.opcode_o == LW || exme.opcode_o == SW ? dpif.dhit : 1'b1;//dpif.ihit || dpif.dhit;
+   assign exme.enable = (exme.opcode_o == LW || exme.opcode_o == SW) || exme.halt_o ? dpif.dhit : dpif.ihit;
    assign exme.target_i = idex.target_o;
    
 
+
+   //enable signals
+   /*
+   always_comb begin
+      exme.enable = 1'b1;
+      mem.enable = 1'b1;
+      if (exme.opcode_o == LW || exme.opcode_o == SW) begin
+	 exme.enable = dpif.dhit;//dpif.ihit || dpif.dhit;
+	 mem.enable = dpif.dhit;
+      end
+      else begin
+	 exme.enable = 1'b1;
+	 mem.enable = 1'b1;
+      end
+   end
+*/
+   
    always_comb begin
       if(idex.lui_o == 1'b1) begin
 	 Mux_lui = 0;
@@ -253,8 +281,10 @@ module datapath (
    assign dpif.dmemWEN = exme.DWen_o;
    assign mem.dload_i = dpif.dmemload;
    assign mem.ALUsource_i = exme.ALUsource_o;
-   assign mem.enable = exme.opcode_o == LW || exme.opcode_o == SW ? dpif.dhit : 1'b1;
+   assign mem.enable = (exme.opcode_o == LW || exme.opcode_o == SW) && !mem.halt_o? dpif.dhit : dpif.ihit;
    assign mem.target_i = exme.target_o;
+   assign mem.Addr_i = exme.Jaddr_o;
+   
    
    
    
@@ -280,13 +310,13 @@ module datapath (
 	 Baddr = npc;
       end
       else begin
-	 Baddr = idex.extout_o;
+	 Baddr = exme.extout_o;
       end
    end
 
    always_comb begin
-      if(exme.jump_o == 1'b1) begin
-	 jump_out = exme.Jaddr_o;
+      if(idex.jump_o == 1'b1) begin
+	 jump_out = idex.Jaddr_o;
       end
       else begin
 	 jump_out = Baddr;
@@ -294,11 +324,11 @@ module datapath (
    end
 
    always_comb begin
-      if(exme.jr_o == 1'b0) begin
-	 mem.Addr_i = jump_out;
+      if(idex.jr_o == 1'b0) begin
+	 exme.Jaddr_i = jump_out;
       end
       else begin
-	 mem.Addr_i = exme.rdat1_o;
+	 exme.Jaddr_i = idex.rdat1_o;
       end
    end
 
@@ -317,13 +347,24 @@ module datapath (
       
       
       
-      if(idex.opcode_o == HALT || exme.opcode_o == HALT || mem.opcode_o == HALT) begin
-	 memfwA = 0;
-	 memfwB = 0;
-	 wbfwA = 0;
-	 wbfwB = 0;
+      
+      if (exme.opcode_o == JAL) begin
+	 if(idex.rs_o == 31) begin
+	    memfwA = 1;
+	 end
+	 else if(idex.rt_o == 31 && idex.opcode_o == RTYPE) begin
+	    memfwB = 1;
+	 end
       end
-      else if(exme.opcode_o != JAL || mem.opcode_o != JAL) begin
+      if (mem.opcode_o == JAL) begin
+	 if(idex.rs_o == 31) begin
+	    wbfwA = 1;
+	 end
+	 else if(idex.rt_o == 31 && idex.opcode_o == RTYPE) begin
+	    wbfwB = 1;
+	 end
+      end // else: !if(idex.rt_o == 31 && idex.opcode_o == RTYPE)
+      if(exme.opcode_o != JAL || mem.opcode_o != JAL) begin
 	 //RTYPE-RTYPE
 	 if(exme.rd_o == idex.rs_o && (exme.rd_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o == RTYPE)) begin
 	    memfwA = 1;
@@ -382,28 +423,89 @@ module datapath (
 	    wbfwB = 1;
 	 end
       end // if (exme.opcode_o != JAL || mem.opcode_o != JAL)
-      else if (exme.opcode_o == JAL) begin
-	 if(idex.rs_o == 31) begin
+      if(idex.halt_o || exme.halt_o || mem.halt_o) begin
+	 memfwA = 0;
+	 memfwB = 0;
+	 wbfwA = 0;
+	 wbfwB = 0;
+      end
+      /*
+       else if(exme.opcode_o != JAL || mem.opcode_o != JAL) begin
+	 //RTYPE-RTYPE
+	 if(exme.rd_o == idex.rs_o && (exme.rd_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o == RTYPE)) begin
 	    memfwA = 1;
 	 end
-	 else if(idex.rt_o == 31 && idex.opcode_o == RTYPE) begin
+	 if(exme.rd_o == idex.rt_o && (exme.rd_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o == RTYPE)) begin
 	    memfwB = 1;
 	 end
-      end
-      else begin
-	 if(idex.rs_o == 31) begin
+	 if(mem.rd_o == idex.rs_o && (mem.rd_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o == RTYPE)) begin
 	    wbfwA = 1;
 	 end
-	 else if(idex.rt_o == 31 && idex.opcode_o == RTYPE) begin
+	 if(mem.rd_o == idex.rt_o && (mem.rd_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o == RTYPE)) begin
 	    wbfwB = 1;
 	 end
-      end // else: !if(idex.rt_o == 31 && idex.opcode_o == RTYPE)
+	 
+	 
+	 //RTYPE-ITYPE
+	 if(exme.rd_o == idex.rs_o && (exme.rd_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o == RTYPE)) begin
+	    memfwA = 1;
+	 end
+	 if(exme.rd_o == idex.rt_o && (exme.rd_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o == RTYPE)) begin
+	    memfwB = 1;
+	 end
+	 if(mem.rd_o == idex.rs_o && (mem.rd_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o == RTYPE)) begin
+	    wbfwA = 1;
+	 end
+	 if(mem.rd_o == idex.rt_o && (mem.rd_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o == RTYPE)) begin
+	    wbfwB = 1;
+	 end
+	 
+	 //ITYPE-RTYPE
+	 if(exme.rt_o == idex.rs_o && (exme.rt_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o != RTYPE)) begin
+	    memfwA = 1;
+	 end
+	 if(exme.rt_o == idex.rt_o && (exme.rt_o != 0) && (idex.opcode_o == RTYPE && exme.opcode_o != RTYPE)) begin
+	    memfwB = 1;
+	 end
+	 if(mem.rt_o == idex.rs_o && (mem.rt_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o != RTYPE)) begin
+	    wbfwA = 1;
+	 end
+	 if(mem.rt_o == idex.rt_o && (mem.rt_o != 0) && (idex.opcode_o == RTYPE && mem.opcode_o != RTYPE)) begin
+	    wbfwB = 1;
+	 end
+	 
+	 //ITYPE-ITYPE
+	 
+	 if(exme.rt_o == idex.rs_o && (exme.rt_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o != RTYPE)) begin
+	    memfwA = 1;
+	 end
+	 if(exme.rt_o == idex.rt_o && (exme.rt_o != 0) && (idex.opcode_o != RTYPE && exme.opcode_o != RTYPE)) begin
+	    memfwB = 1;
+	 end
+	 if(mem.rt_o == idex.rs_o && (mem.rt_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o != RTYPE)) begin
+	    wbfwA = 1;
+	 end
+	 if(mem.rt_o == idex.rt_o && (mem.rt_o != 0) && (idex.opcode_o != RTYPE && mem.opcode_o != RTYPE)) begin
+	    wbfwB = 1;
+	 end
+      end // if (exme.opcode_o != JAL || mem.opcode_o != JAL)
+       */
+      
    end // always_comb
 
    always_comb begin
       dpif.dmemstore = exme.rdat2_o;
       exme.rdat2_i = idex.rdat2_o;
       idex.rdat2_i = rfif.rdat2;
+      if(idex.ALUsource_o == 1) begin
+	 ALUSrc_out = idex.extout_o;
+      end
+      else if(idex.ALUsource_o == 0) begin
+	 ALUSrc_out = idex.rdat2_o;
+      end
+      else begin
+	 ALUSrc_out = idex.shamt_o;
+      end
       if(memfwB) begin
 
 	 if(exme.opcode_o == LW) begin
@@ -418,6 +520,10 @@ module datapath (
 	       ALUSrc_out = idex.shamt_o;
 	    end
 	 end // if (mem.opcode_o == LW)
+	 else if(exme.opcode_o == JAL) begin
+	    ALUSrc_out = exme.npc_o;
+	    exme.rdat2_i = exme.npc_o;
+	 end
 	 else begin
 	    exme.rdat2_i = exme.alu_out_o;
 	    if(idex.ALUsource_o == 1) begin
@@ -430,12 +536,8 @@ module datapath (
 	       ALUSrc_out = idex.shamt_o;
 	    end
 	 end // else: !if(mem.opcode_o == LW)
-
-
-
-	 
       end // if (memfwB)
-      else if (wbfwB) begin
+      if (wbfwB) begin
 	 if(mem.opcode_o == LW) begin
 	    exme.rdat2_i = mem.dload_o;
 	    if(idex.ALUsource_o == 1) begin
@@ -447,8 +549,13 @@ module datapath (
 	    end
 	    else begin
 	       ALUSrc_out = idex.shamt_o;
+	       
 	    end
 	 end // if (mem.opcode_o == LW)
+	 else if(mem.opcode_o == JAL) begin
+	    ALUSrc_out = mem.npc_o;
+	    exme.rdat2_i = mem.npc_o;
+	 end
 	 else begin
 	    exme.rdat2_i = mem.alu_out_o;
 	    if(idex.ALUsource_o == 1) begin
@@ -463,41 +570,34 @@ module datapath (
 	    end
 	 end // else: !if(mem.opcode_o == LW)
       end // if (wbfwB)
-      else begin
-	 if(idex.ALUsource_o == 1) begin
-	    ALUSrc_out = idex.extout_o;
-	 end
-	 else if(idex.ALUsource_o == 0) begin
-	    ALUSrc_out = idex.rdat2_o;
-	 end
-	 else begin
-	    ALUSrc_out = idex.shamt_o;
-	 end
-      end // else: !if(memfwB)
 
 
 
+      A_out = idex.rdat1_o;
 
       if(memfwA) begin
 	 //A_out = exme.alu_out_o;
 	 if(exme.opcode_o == LW) begin
 	    A_out = dpif.dmemload;
 	 end
+	 else if(exme.opcode_o == JAL) begin
+	   A_out = exme.npc_o;
+	 end
 	 else begin
 	    A_out = exme.alu_out_o;
 	 end
       end
-      else if(wbfwA) begin
+      if(wbfwA) begin
 	 if(mem.opcode_o == LW) begin
 	    A_out = mem.dload_o;
+	 end
+	 else if(mem.opcode_o == JAL) begin
+	   A_out = mem.npc_o;
 	 end
 	 else begin
 	    A_out = mem.alu_out_o;
 	 end
       end
-      else begin
-	 A_out = idex.rdat1_o;
-      end // else: !if(wbfwA)
    end // always_comb
    
 
