@@ -327,12 +327,13 @@ module dcache (
 /////////////////////////////////////////////////////////////////////////////////////////
             SNOOP1: begin
                 ccif.dREN[CPUID] = 1'b0;
-                ccif.dWEN[CPUID] = 1'b1;
+                ccif.dWEN[CPUID] = 1'b0; ////////should not always be high only if need to write back to bus
                 
 
                 if ((snoop1_tag[snoop_sel.idx] == snoop_sel.tag) && snoop1_valid[snoop_sel.idx] ) begin
                     ccif.daddr[CPUID] = {ccif.ccsnoopaddr[WORD_W-1:3], 1'b0, 2'b00};
                     ccif.dstore[CPUID] = block1_data1[snoop_sel.idx];
+                    ccif.dWEN[CPUID] = 1'b1;
                     if(snoop1_dirty[snoop_sel.idx]) begin
                         ccif.ccwrite[CPUID] = 1'b1;
                         ccif.cctrans[CPUID] = 1'b1;
@@ -348,6 +349,7 @@ module dcache (
                 end else if ((snoop2_tag[snoop_sel.idx] == snoop_sel.tag) && snoop2_valid[snoop_sel.idx]) begin
                     ccif.daddr[CPUID] = {ccif.ccsnoopaddr[WORD_W-1:3], 1'b0, 2'b00};
                     ccif.dstore[CPUID] = block2_data1[snoop_sel.idx];
+                    ccif.dWEN[CPUID] = 1'b1;
                     if(snoop2_dirty[snoop_sel.idx]) begin
                         ccif.ccwrite[CPUID] = 1'b1;
                         ccif.cctrans[CPUID] = 1'b1;
@@ -361,6 +363,7 @@ module dcache (
                         end
                     end
                 end else begin
+                    ccif.dWEN[CPUID] = 1'b0;
                     ccif.daddr[CPUID] = 0;
                     ccif.dstore[CPUID] = 0;
                     ccif.ccwrite[CPUID] = 1'b0;
@@ -368,7 +371,7 @@ module dcache (
                 end
             end
 
-            SNOOP2: begin
+            SNOOP2: begin//change dWEN here too
                 ccif.dREN[CPUID] = 1'b0;
                 ccif.dWEN[CPUID] = 1'b1;
                 if ((snoop1_tag[snoop_sel.idx] == snoop_sel.tag) && snoop1_valid[snoop_sel.idx] ) begin
