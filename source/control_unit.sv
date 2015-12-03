@@ -520,6 +520,44 @@ module control_unit (control_unit_if.control cuif);
 	      cuif.jr = 1'b0;	
 	      cuif.BNE = 1'b0;
 	   end // if (cuif.opcode == SW)
+	 /*
+	  else if(cuif.opcode == LL)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b1;
+	      cuif.Dwen = 1'b0;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b01;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == LL)
+	  else if(cuif.opcode == SC)
+	   begin
+	      cuif.jump = 1'b0;
+	      cuif.Branch = 1'b0;
+	      cuif.Dren = 1'b0;
+	      cuif.Dwen = 1'b1;
+	      cuif.Iren = 1'b1;
+	      cuif.halt = 1'b0;
+	      cuif.Mem = 2'b00;
+	      cuif.ALUsource = 1'b1;
+	      cuif.opcode_ALU = ALU_ADD;
+	      cuif.RegW = 1'b1;
+	      cuif.ExtSel = 2'b01;
+	      cuif.regDest = 2'b01;
+	      cuif.lui = 1'b0;
+	      cuif.jr = 1'b0;	
+	      cuif.BNE = 1'b0;
+	   end // if (cuif.opcode == SC)
+	  */
 	  else if(cuif.opcode == HALT)
 	    begin
 	       cuif.jump = 1'b0;

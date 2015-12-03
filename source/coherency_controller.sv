@@ -31,7 +31,7 @@ module coherency_controller (
         end
     end
 
-    always_comb begin
+    always @ * begin
         next_cpu_sel = cpu_sel;
         casez (curr_state)
             IDLE: begin
@@ -106,7 +106,7 @@ module coherency_controller (
     end
 
     //change all the outputs for the states. because now outside of idle cpu_sel is requestor ~cpu_sel is responder
-    always_comb begin
+    always @ * begin
         ccif.ccwait = 0;
         ccif.ccinv = 0;
         ccif.ccsnoopaddr = 0;
@@ -153,6 +153,8 @@ module coherency_controller (
                 ccif.ccwait[~cpu_sel] = 1;
                 ccif.ccinv[~cpu_sel] = ccif.ccwrite[cpu_sel];
                 ccif.ccsnoopaddr[~cpu_sel] = ccif.daddr[cpu_sel]; 
+                //ccif.dwait[~cpu_sel] = 0;
+
             end
 
             C2C: begin
