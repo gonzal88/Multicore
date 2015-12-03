@@ -238,6 +238,8 @@ module dcache (
                     next_state = SNOOP1;
                     saved_state = FLUSHB1W1;
             /////////////////////////////////////////////////////////////////////////////////////////
+                end else if (!(block1_valid[flush_idx_count] && block1_dirty[flush_idx_count])) begin
+                    next_state = FLUSHB2W1;
                 end else if (!ccif.dwait[CPUID]) begin
                     next_state = FLUSHB1W2;
                 end else begin
@@ -264,6 +266,8 @@ module dcache (
                     next_state = SNOOP1;
                     saved_state = FLUSHB2W1;
             /////////////////////////////////////////////////////////////////////////////////////////
+                end else if (!(block2_valid[flush_idx_count] && block2_dirty[flush_idx_count])) begin
+                    next_state = FLUSHB2W2;
                 end else if (!ccif.dwait[CPUID]) begin
                     next_state = FLUSHB2W2;
                 end else begin
@@ -277,6 +281,13 @@ module dcache (
                     next_state = SNOOP1;
                     saved_state = FLUSHB2W2;
             /////////////////////////////////////////////////////////////////////////////////////////
+                end else if (!(block2_valid[flush_idx_count] && block2_dirty[flush_idx_count])) begin
+                    if (flush_idx_count != 3'd7) begin
+                        next_state = FLUSHB1W1;
+                        flush_idx_count_next = flush_idx_count + 3'd1;
+                    end else begin
+                        next_state = IDLE;
+                    end
                 end else if ((flush_idx_count != 3'd7) && (!ccif.dwait[CPUID])) begin 
                     next_state = FLUSHB1W1;
                     flush_idx_count_next = flush_idx_count + 3'd1;
@@ -379,11 +390,11 @@ module dcache (
                 end
                 */
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
-                    ccif.cctrans[CPUID] = 1'b1;
+                    ccif.dWEN[CPUID] = 1'b1;
                     ccif.ccwrite[CPUID] = 1'b1;
                 end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
-                    ccif.cctrans[CPUID] = 1'b1;
-                    ccif.ccwrite[CPUID] = 1'b0;
+                    ccif.dWEN[CPUID] = 1'b0;
+                    ccif.ccwrite[CPUID] = 1'b1;
                 end 
 
                 /////////////////////////////////////////////////////////////////////////////////////////
@@ -533,7 +544,13 @@ module dcache (
                     ccif.ccwrite[CPUID] = 1'b0;
                 end
 /////////////////////////////////////////////////////////////////////////////////////////
-
+                if (ccif.ccwait[CPUID] && snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b1;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b0;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end 
 
             end
 
@@ -621,6 +638,14 @@ module dcache (
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
+                if (ccif.ccwait[CPUID] && snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b1;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b0;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end 
+
             end
 
             WB2: begin
@@ -653,7 +678,7 @@ module dcache (
 
             FLUSHB1W1: begin
                 ccif.dREN[CPUID] = 0;
-                if (block1_valid[flush_idx_count]) begin
+                if (block1_valid[flush_idx_count] && block1_dirty[flush_idx_count]) begin
                     ccif.dWEN[CPUID] = 1;
                 end else begin
                     ccif.dWEN[CPUID] = 0;
@@ -674,12 +699,20 @@ module dcache (
                 next_block2_valid = block2_valid[flush_idx_count];
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
-                next_block2_dirty = block2_dirty[flush_idx_count];                
+                next_block2_dirty = block2_dirty[flush_idx_count];     
+
+                if (ccif.ccwait[CPUID] && snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b1;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b0;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end           
             end
 
             FLUSHB1W2: begin
                 ccif.dREN[CPUID] = 0;
-                if (block1_valid[flush_idx_count]) begin
+                if (block1_valid[flush_idx_count] && block1_dirty[flush_idx_count]) begin
                     ccif.dWEN[CPUID] = 1;
                 end else begin
                     ccif.dWEN[CPUID] = 0;
@@ -705,11 +738,19 @@ module dcache (
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
                 next_block2_dirty = block2_dirty[flush_idx_count];
+
+                if (ccif.ccwait[CPUID] && snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b1;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b0;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end
             end
 
             FLUSHB2W1: begin
                 ccif.dREN[CPUID] = 0;
-                if (block2_valid[flush_idx_count]) begin
+                if (block2_valid[flush_idx_count] && block2_dirty[flush_idx_count]) begin
                     ccif.dWEN[CPUID] = 1;
                 end else begin
                     ccif.dWEN[CPUID] = 0;
@@ -731,11 +772,19 @@ module dcache (
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
                 next_block2_dirty = block2_dirty[flush_idx_count]; 
+
+                if (ccif.ccwait[CPUID] && snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b1;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b0;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end
             end
 
             FLUSHB2W2: begin
                 ccif.dREN[CPUID] = 0;
-                if (block2_valid[flush_idx_count]) begin
+                if (block2_valid[flush_idx_count] && block2_dirty[flush_idx_count]) begin
                     ccif.dWEN[CPUID] = 1;
                 end else begin
                     ccif.dWEN[CPUID] = 0;
@@ -761,6 +810,14 @@ module dcache (
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
                 next_block2_dirty = block2_dirty[flush_idx_count];
+
+                if (ccif.ccwait[CPUID] && snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b1;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
+                    ccif.dWEN[CPUID] = 1'b0;
+                    ccif.ccwrite[CPUID] = 1'b1;
+                end
             end
         endcase
         /////////////////////////////////////////////////////////////////////////////////////////
