@@ -36,28 +36,28 @@ module coherency_controller (
         casez (curr_state)
             IDLE: begin
                 // modify so that cpu_sel has priority but if only ~cpu_sel has a request that should work too.
-                if (ccif.iREN[cpu_sel]) begin
-                    next_state = IST;
-                end else if (ccif.iREN[~cpu_sel]) begin
-                    next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE. works for 2 cores but with more we could do so with small changes. (cpu_sel + 1) ??? should we do that? would overflow and wrap around properly?
-                    next_state = IST;
+                if (ccif.cctrans[cpu_sel] && ccif.dREN[cpu_sel]) begin
+                    next_state = SNOOP;
+                end else if (ccif.cctrans[~cpu_sel] && ccif.dREN[~cpu_sel]) begin
+                    next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE
+                    next_state = SNOOP;
                 end else if (ccif.dWEN[cpu_sel]) begin
                     next_state = WST;
                 end else if (ccif.dWEN[~cpu_sel]) begin
                     next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE
                     next_state = WST;
-		end else if (ccif.dREN[cpu_sel]) begin
-		    next_state = SNOOP;
-                end else if (ccif.dREN[~cpu_sel]) begin
-                    next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE
-                    next_state = SNOOP;
+		        end else if (ccif.iREN[cpu_sel]) begin
+                    next_state = IST;
+                end else if (ccif.iREN[~cpu_sel]) begin
+                    next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE. works for 2 cores but with more we could do so with small changes. (cpu_sel + 1) ??? should we do that? would overflow and wrap around properly?
+                    next_state = IST;
                 end else begin
                     next_state = IDLE;
                 end
             end
 
             IST: begin
-                if (!ccif.iREN[cpu_sel] && (ccif.ramstate == ACCESS)) begin //since cpu_sel is the requestor in this state this is now correct again. only was checking for cpu_sel.
+                if (!ccif.iREN[cpu_sel]) begin //since cpu_sel is the requestor in this state this is now correct again. only was checking for cpu_sel.
                     next_state = IDLE;
                     next_cpu_sel = ~cpu_sel; //switch arbitrarily whenever we go back to idle
                 end else begin
@@ -77,7 +77,7 @@ module coherency_controller (
             SNOOP: begin
                 if (ccif.dWEN[~cpu_sel] && ccif.ccwrite[~cpu_sel]) begin //dWEN and ccwrite are high if the responder is writing back to bus
                     next_state = C2C; // actually transferring the data _INSIDE_ C2C state
-                end else if (~ccif.dWEN[~cpu_sel]) begin //otherwise the data is coming from memory
+                end else if (~ccif.dWEN[~cpu_sel] && ccif.ccwrite[~cpu_sel]) begin //otherwise the data is coming from memory
                     next_state = M2C;
                 end else begin // 
                     next_state = SNOOP;
@@ -130,20 +130,20 @@ module coherency_controller (
                 if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
                     ccif.iwait[cpu_sel] = 1'b0;
                 end else if (ccif.ramstate == FREE) begin //FREE
-                    ccif.iwait[cpu_sel] = 1'b0;
+                    ccif.iwait[cpu_sel] = 1'b1;
                 end else begin //BUSY, ERROR and default
                     ccif.iwait[cpu_sel] = 1'b1;
                 end
             end
 
-            WST: beginf
+            WST: begin
                 ccif.ramstore = ccif.dstore[cpu_sel];
                 ccif.ramWEN = ccif.dWEN[cpu_sel];
                 ccif.ramaddr = ccif.daddr[cpu_sel];
                 if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
                     ccif.dwait[cpu_sel] = 1'b0;
                 end else if (ccif.ramstate == FREE) begin //FREE
-                    ccif.dwait[cpu_sel] = 1'b0;
+                    ccif.dwait[cpu_sel] = 1'b1;
                 end else begin //BUSY, ERROR and default
                     ccif.dwait[cpu_sel] = 1'b1;
                 end
@@ -159,8 +159,8 @@ module coherency_controller (
                 ccif.dload[cpu_sel] = ccif.dstore[~cpu_sel];
                 ccif.dwait[~cpu_sel] = !(ccif.ramstate == ACCESS);
                 ccif.dwait[cpu_sel] = !(ccif.ramstate == ACCESS);
-                ccif.ramaddr = ccif.daddr[~cpu_sel];
-                ccif.ramREN = ccif.dREN[~cpu_sel];
+                ccif.ramaddr = ccif.daddr[cpu_sel];
+                ccif.ramWEN = 1'b1;
             end
 
             M2C: begin
@@ -171,7 +171,7 @@ module coherency_controller (
                 if (ccif.ramstate == ACCESS) begin //RAMSTATES == ACCESS
                     ccif.dwait[cpu_sel] = 1'b0;
                 end else if (ccif.ramstate == FREE) begin //FREE
-                    ccif.dwait[cpu_sel] = 1'b0;
+                    ccif.dwait[cpu_sel] = 1'b1;
                 end else begin //BUSY, ERROR and default
                     ccif.dwait[cpu_sel] = 1'b1;
                 end
