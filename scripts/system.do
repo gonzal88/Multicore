@@ -45,6 +45,7 @@ add wave -noupdate -group datapath0 -group rfif /system_tb/DUT/CPU/DP0/rfif/rsel
 add wave -noupdate -group datapath0 -group rfif /system_tb/DUT/CPU/DP0/rfif/wdat
 add wave -noupdate -group datapath0 -group rfif /system_tb/DUT/CPU/DP0/rfif/rdat1
 add wave -noupdate -group datapath0 -group rfif /system_tb/DUT/CPU/DP0/rfif/rdat2
+add wave -noupdate -group datapath0 -group rfif /system_tb/DUT/CPU/DP0/rf/array
 add wave -noupdate -group datapath0 -group eif /system_tb/DUT/CPU/DP0/eif/ExtSel
 add wave -noupdate -group datapath0 -group eif /system_tb/DUT/CPU/DP0/eif/imm
 add wave -noupdate -group datapath0 -group eif /system_tb/DUT/CPU/DP0/eif/extout
@@ -255,6 +256,7 @@ add wave -noupdate -group datapath1 -group rfif /system_tb/DUT/CPU/DP1/rfif/rsel
 add wave -noupdate -group datapath1 -group rfif /system_tb/DUT/CPU/DP1/rfif/wdat
 add wave -noupdate -group datapath1 -group rfif /system_tb/DUT/CPU/DP1/rfif/rdat1
 add wave -noupdate -group datapath1 -group rfif /system_tb/DUT/CPU/DP1/rfif/rdat2
+add wave -noupdate -group datapath1 -group rfif /system_tb/DUT/CPU/DP1/rf/array
 add wave -noupdate -group datapath1 -group eif /system_tb/DUT/CPU/DP1/eif/ExtSel
 add wave -noupdate -group datapath1 -group eif /system_tb/DUT/CPU/DP1/eif/imm
 add wave -noupdate -group datapath1 -group eif /system_tb/DUT/CPU/DP1/eif/extout
@@ -560,11 +562,11 @@ add wave -noupdate -group DCACHE_1 /system_tb/DUT/CPU/CM1/DCACHE/flush_idx_count
 add wave -noupdate -group DCACHE_1 /system_tb/DUT/CPU/CM1/DCACHE/flush_idx_count_next
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/CPUS
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/CPUID
-add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/iwait
-add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/dwait
-add wave -noupdate -expand -group ccif -expand /system_tb/DUT/CPU/ccif/iREN
-add wave -noupdate -expand -group ccif -expand /system_tb/DUT/CPU/ccif/dREN
-add wave -noupdate -expand -group ccif -expand /system_tb/DUT/CPU/ccif/dWEN
+add wave -noupdate -expand -group ccif -radix binary /system_tb/DUT/CPU/ccif/iwait
+add wave -noupdate -expand -group ccif -radix binary /system_tb/DUT/CPU/ccif/dwait
+add wave -noupdate -expand -group ccif -radix binary /system_tb/DUT/CPU/ccif/iREN
+add wave -noupdate -expand -group ccif -radix binary /system_tb/DUT/CPU/ccif/dREN
+add wave -noupdate -expand -group ccif -radix binary /system_tb/DUT/CPU/ccif/dWEN
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/iload
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/dload
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/dstore
@@ -572,7 +574,7 @@ add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/iaddr
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/daddr
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/ccwait
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/ccinv
-add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/ccwrite
+add wave -noupdate -expand -group ccif -expand /system_tb/DUT/CPU/ccif/ccwrite
 add wave -noupdate -expand -group ccif -expand /system_tb/DUT/CPU/ccif/cctrans
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/ccsnoopaddr
 add wave -noupdate -expand -group ccif /system_tb/DUT/CPU/ccif/ramWEN
@@ -585,19 +587,19 @@ add wave -noupdate -expand -group {coherency controller} /system_tb/DUT/CPU/CC/c
 add wave -noupdate -expand -group {coherency controller} /system_tb/DUT/CPU/CC/next_state
 add wave -noupdate -expand -group {coherency controller} /system_tb/DUT/CPU/CC/cpu_sel
 add wave -noupdate -expand -group {coherency controller} /system_tb/DUT/CPU/CC/next_cpu_sel
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/ramREN
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/ramWEN
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/ramaddr
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/ramstore
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/ramload
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/ramstate
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/memREN
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/memWEN
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/memaddr
-add wave -noupdate -group cpu_ram_if /system_tb/DUT/CPU/scif/memstore
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/ramREN
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/ramWEN
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/ramaddr
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/ramstore
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/ramload
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/ramstate
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/memREN
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/memWEN
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/memaddr
+add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/memstore
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {1491591 ps} 0 Green default}
-quietly wave cursor active 1
+WaveRestoreCursors {{Writes Start} {3415671 ps} 1 Green default} {{Writes End} {4099094 ps} 1} {{Cursor 4} {3714907 ps} 0}
+quietly wave cursor active 3
 configure wave -namecolwidth 166
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -612,4 +614,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {1304754 ps} {1703754 ps}
+WaveRestoreZoom {3342649 ps} {4187759 ps}
