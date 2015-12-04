@@ -74,7 +74,7 @@ module dcache (
 
     assign dcache_sel = dcachef_t'(dcif.dmemaddr); //'
     /////////////////////////////////////////////////////////////////////////////////////////
-    assign snoop_sel = dcachef_t'(ccif.ccsnoopaddr); //'
+    assign snoop_sel = dcachef_t'(ccif.ccsnoopaddr[CPUID]); //'
     /////////////////////////////////////////////////////////////////////////////////////////
     
     assign hit1 = ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx]) ? 1'b1 : 1'b0; // || ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx])) ? 1'b1 : 1'b0 ;
@@ -821,12 +821,19 @@ module dcache (
             end
         endcase
         /////////////////////////////////////////////////////////////////////////////////////////
-        next_snoop1_tag = next_block1_tag;
+        /*next_snoop1_tag = next_block1_tag;
         next_snoop2_tag = next_block2_tag;
         next_snoop1_dirty = next_block1_dirty;
         next_snoop2_dirty = next_block2_dirty;
         next_snoop1_valid = next_block1_valid;
         next_snoop2_valid = next_block2_valid;
+*/
+        next_snoop1_tag = block1_tag[snoop_sel.idx];
+        next_snoop2_tag = block2_tag[snoop_sel.idx];
+        next_snoop1_dirty = block1_dirty[snoop_sel.idx];
+        next_snoop2_dirty = block2_dirty[snoop_sel.idx];
+        next_snoop1_valid = block1_valid[snoop_sel.idx];
+        next_snoop2_valid = block2_valid[snoop_sel.idx];
         /////////////////////////////////////////////////////////////////////////////////////////
 
     end
