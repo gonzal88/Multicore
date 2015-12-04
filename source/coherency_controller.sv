@@ -153,8 +153,6 @@ module coherency_controller (
                 ccif.ccwait[~cpu_sel] = 1;
                 ccif.ccinv[~cpu_sel] = ccif.ccwrite[cpu_sel];
                 ccif.ccsnoopaddr[~cpu_sel] = ccif.daddr[cpu_sel]; 
-                //ccif.dwait[~cpu_sel] = 0;
-
             end
 
             C2C: begin

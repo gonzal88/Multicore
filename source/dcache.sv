@@ -47,6 +47,7 @@ module dcache (
     logic next_snoop1_dirty;
     logic next_snoop2_dirty;
     logic [7:0] snoop2_dirty;
+    
     /////////////////////////////////////////////////////////////////////////////////////////
     logic [DTAG_W-1:0] next_block1_tag;
     logic [DTAG_W-1:0] block2_tag [7:0];
@@ -66,7 +67,7 @@ module dcache (
     logic hit1;
     logic hit2;
 
-    logic snoop_hit, snoop_hit1, snoop_hit2;
+    logic snoop_hit, snoop_hit1, snoop_hit2; 
    
     //word_t hit_counter, hit_counter_next;
     logic [2:0] flush_idx_count;
@@ -75,6 +76,10 @@ module dcache (
     assign dcache_sel = dcachef_t'(dcif.dmemaddr); //'
     /////////////////////////////////////////////////////////////////////////////////////////
     assign snoop_sel = dcachef_t'(ccif.ccsnoopaddr[CPUID]); //'
+    assign snoop_hit = snoop_hit1 || snoop_hit2;
+
+    assign snoop_hit1 = ((snoop1_tag[snoop_sel.idx] == snoop_sel.tag) && snoop1_valid[snoop_sel.idx] ) && snoop1_dirty[snoop_sel.idx];
+    assign snoop_hit2 = ((snoop2_tag[snoop_sel.idx] == snoop_sel.tag) && snoop2_valid[snoop_sel.idx] ) && snoop2_dirty[snoop_sel.idx];
     /////////////////////////////////////////////////////////////////////////////////////////
     
     assign hit1 = ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx]) ? 1'b1 : 1'b0; // || ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx])) ? 1'b1 : 1'b0 ;
@@ -83,10 +88,7 @@ module dcache (
    
     assign hit2 = ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx]) ? 1'b1 : 1'b0;
    
-    assign snoop_hit = snoop_hit1 || snoop_hit2;
-
-    assign snoop_hit1 = ((snoop1_tag[snoop_sel.idx] == snoop_sel.tag) && snoop1_valid[snoop_sel.idx] ) && snoop1_dirty[snoop_sel.idx];
-    assign snoop_hit2 = ((snoop2_tag[snoop_sel.idx] == snoop_sel.tag) && snoop2_valid[snoop_sel.idx] ) && snoop2_dirty[snoop_sel.idx];
+    
 
     always_ff @(posedge CLK or negedge nRST) begin
         if (!nRST) begin
@@ -108,10 +110,10 @@ module dcache (
             snoop2_dirty <= '{default:1'b0};
             snoop1_valid <= '{default:1'b0};
             snoop2_valid <= '{default:1'b0};
+            cc_saved_state <= IDLE;
             /////////////////////////////////////////////////////////////////////////////////////////
             recent_block <= '{default:1'b1};
             flush_idx_count <= 3'd0;
-            cc_saved_state <= IDLE;
         end else begin
             curr_state <= next_state;
             block1_data1[dcache_sel.idx] <= next_block1_data1;
@@ -131,10 +133,11 @@ module dcache (
             snoop2_valid[snoop_sel.idx] <= next_snoop2_valid;
             snoop1_dirty[snoop_sel.idx] <= next_snoop1_dirty;
             snoop2_dirty[snoop_sel.idx] <= next_snoop2_dirty;
-            /////////////////////////////////////////////////////////////////////////////////////////
+            cc_saved_state <= saved_state;
+                /////////////////////////////////////////////////////////////////////////////////////////
             recent_block[dcache_sel.idx] <= next_recent_block;
             flush_idx_count <= flush_idx_count_next;
-            cc_saved_state <= saved_state;
+            
         end
     end // always_ff @
 
@@ -166,9 +169,9 @@ module dcache (
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     next_state = SNOOP1;
                     saved_state = UPDATE1;
-            /////////////////////////////////////////////////////////////////////////////////////////
                 end else if (!ccif.dwait[CPUID]) begin
                     next_state = UPDATE2;
+            /////////////////////////////////////////////////////////////////////////////////////////
                 end else begin
                     next_state = UPDATE1;
                 end
@@ -179,9 +182,9 @@ module dcache (
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     next_state = SNOOP1;
                     saved_state = UPDATE2;
-            /////////////////////////////////////////////////////////////////////////////////////////
                 end else if (!ccif.dwait[CPUID]) begin
                     next_state = IDLE;
+            /////////////////////////////////////////////////////////////////////////////////////////
                 end else begin
                     next_state = UPDATE2;
                 end
@@ -192,9 +195,9 @@ module dcache (
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     next_state = SNOOP1;
                     saved_state = WB1;
-            /////////////////////////////////////////////////////////////////////////////////////////
                 end else if (!ccif.dwait[CPUID]) begin
                     next_state = WB2;
+            /////////////////////////////////////////////////////////////////////////////////////////
                 end else begin
                     next_state = WB1;
                 end
@@ -237,11 +240,11 @@ module dcache (
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     next_state = SNOOP1;
                     saved_state = FLUSHB1W1;
-            /////////////////////////////////////////////////////////////////////////////////////////
                 end else if (!(block1_valid[flush_idx_count] && block1_dirty[flush_idx_count])) begin
                     next_state = FLUSHB2W1;
                 end else if (!ccif.dwait[CPUID]) begin
                     next_state = FLUSHB1W2;
+            /////////////////////////////////////////////////////////////////////////////////////////
                 end else begin
                     next_state = FLUSHB1W1;
                 end
@@ -252,9 +255,9 @@ module dcache (
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     next_state = SNOOP1;
                     saved_state = FLUSHB1W2;
-            /////////////////////////////////////////////////////////////////////////////////////////
                 end else if (!ccif.dwait[CPUID]) begin
                     next_state = FLUSHB2W1;
+            /////////////////////////////////////////////////////////////////////////////////////////
                 end else begin
                     next_state = FLUSHB1W2;
                 end
@@ -265,11 +268,11 @@ module dcache (
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     next_state = SNOOP1;
                     saved_state = FLUSHB2W1;
-            /////////////////////////////////////////////////////////////////////////////////////////
                 end else if (!(block2_valid[flush_idx_count] && block2_dirty[flush_idx_count])) begin
                     next_state = FLUSHB2W2;
                 end else if (!ccif.dwait[CPUID]) begin
                     next_state = FLUSHB2W2;
+            /////////////////////////////////////////////////////////////////////////////////////////
                 end else begin
                     next_state = FLUSHB2W1;
                 end
@@ -288,11 +291,13 @@ module dcache (
                     end else begin
                         next_state = IDLE;
                     end
+                       /////////////////////////////////////////////////////////////////////////////
                 end else if ((flush_idx_count != 3'd7) && (!ccif.dwait[CPUID])) begin 
                     next_state = FLUSHB1W1;
                     flush_idx_count_next = flush_idx_count + 3'd1;
                 end else if ((flush_idx_count == 3'd7) && (!ccif.dwait[CPUID])) begin //flush_count or flush_count_next?
                     next_state = IDLE;
+                       /////////////////////////////////////////////////////////////////////////////
                 end else begin
                     next_state = FLUSHB2W2;
                 end
@@ -323,6 +328,17 @@ module dcache (
         next_block1_dirty = block1_dirty[dcache_sel.idx];
         next_block2_dirty = block2_dirty[dcache_sel.idx];
 
+
+       
+        /////////////////////////////////////////////////////////////////////////////
+        next_snoop1_tag = block1_tag[snoop_sel.idx];
+        next_snoop2_tag = block2_tag[snoop_sel.idx];
+        next_snoop1_dirty = block1_dirty[snoop_sel.idx];
+        next_snoop2_dirty = block2_dirty[snoop_sel.idx];
+        next_snoop1_valid = block1_valid[snoop_sel.idx];
+        next_snoop2_valid = block2_valid[snoop_sel.idx];
+        /////////////////////////////////////////////////////////////////////////////
+       
         casez(curr_state)
             IDLE: begin
                 ccif.dREN[CPUID] = 0;
@@ -407,14 +423,14 @@ module dcache (
                 ccif.dWEN[CPUID] = 1'b0; ////////should not always be high only if need to write back to bus
                 
 
-                if ((snoop1_tag[snoop_sel.idx] == snoop_sel.tag) && snoop1_valid[snoop_sel.idx] ) begin
+                if ((snoop1_tag[snoop_sel.idx] == snoop_sel.tag) && snoop1_valid[snoop_sel.idx] ) begin //S or M
                     ccif.daddr[CPUID] = {ccif.ccsnoopaddr[CPUID][WORD_W-1:3], 1'b0, 2'b00};
                     ccif.dstore[CPUID] = block1_data1[snoop_sel.idx];
                     ccif.dWEN[CPUID] = 1'b1;
-                    if(snoop1_dirty[snoop_sel.idx]) begin
+                    if(snoop1_dirty[snoop_sel.idx]) begin // M
                         ccif.ccwrite[CPUID] = 1'b1;
                         ccif.cctrans[CPUID] = 1'b1;
-                    end else begin
+                    end else begin //S
                         if(ccif.ccinv[CPUID]) begin
                             ccif.ccwrite[CPUID] = 1'b1;
                             ccif.cctrans[CPUID] = 1'b1;
@@ -455,9 +471,16 @@ module dcache (
                     ccif.daddr[CPUID] = {ccif.ccsnoopaddr[CPUID][WORD_W-1:3], 1'b1, 2'b00};
                     ccif.dstore[CPUID] = block1_data2[snoop_sel.idx];
                     ccif.dWEN[CPUID] = 1'b1;
+                    
                     if(snoop1_dirty[snoop_sel.idx]) begin
                         ccif.ccwrite[CPUID] = 1'b1;
                         ccif.cctrans[CPUID] = 1'b1;
+                       /////////////////////////////////////////////////////////////////////////////
+                        if (ccif.ccinv[CPUID]) begin
+                           next_snoop1_valid = 1'b0; //still need to add logic to update main valid bit
+               
+                        end
+                       /////////////////////////////////////////////////////////////////////////////
                     end else begin
                         if(ccif.ccinv[CPUID]) begin
                             ccif.ccwrite[CPUID] = 1'b1;
@@ -474,6 +497,11 @@ module dcache (
                     if(snoop2_dirty[snoop_sel.idx]) begin
                         ccif.ccwrite[CPUID] = 1'b1;
                         ccif.cctrans[CPUID] = 1'b1;
+                       /////////////////////////////////////////////////////////////////////////////
+                        if (ccif.ccinv[CPUID]) begin
+                           next_snoop2_valid = 1'b0;
+                        end
+                       /////////////////////////////////////////////////////////////////////////////
                     end else begin
                         if(ccif.ccinv[CPUID]) begin
                             ccif.ccwrite[CPUID] = 1'b1;
@@ -536,14 +564,13 @@ module dcache (
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
-/////////////////////////////////////////////////////////////////////////////////////////
+               /////////////////////////////////////////////////////////////////////////////////////////
                 ccif.cctrans[CPUID] = 1'b1;
                 if (dcif.dmemWEN) begin
                     ccif.ccwrite[CPUID] = 1'b1;
                 end else begin
                     ccif.ccwrite[CPUID] = 1'b0;
                 end
-/////////////////////////////////////////////////////////////////////////////////////////
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     ccif.dWEN[CPUID] = 1'b1;
                     ccif.ccwrite[CPUID] = 1'b1;
@@ -551,7 +578,7 @@ module dcache (
                     ccif.dWEN[CPUID] = 1'b0;
                     ccif.ccwrite[CPUID] = 1'b1;
                 end 
-
+               /////////////////////////////////////////////////////////////////////////////////////////
             end
 
             UPDATE2: begin
@@ -603,14 +630,14 @@ module dcache (
                 end
 
                 
-////////////////////////////////////////////////////////////////////////
+               ////////////////////////////////////////////////////////////////////////
                 ccif.cctrans[CPUID] = 1'b1;
                 if (dcif.dmemWEN) begin
                     ccif.ccwrite[CPUID] = 1'b1;
                 end else begin
                     ccif.ccwrite[CPUID] = 1'b0;
                 end
-////////////////////////////////////////////////////////////////////////
+               ////////////////////////////////////////////////////////////////////////
             end
 
             WB1: begin
@@ -638,13 +665,15 @@ module dcache (
                 next_block1_dirty = block1_dirty[dcache_sel.idx];
                 next_block2_dirty = block2_dirty[dcache_sel.idx];
 
+               ////////////////////////////////////////////////////////////////////////
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     ccif.dWEN[CPUID] = 1'b1;
                     ccif.ccwrite[CPUID] = 1'b1;
                 end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
                     ccif.dWEN[CPUID] = 1'b0;
                     ccif.ccwrite[CPUID] = 1'b1;
-                end 
+                end
+               ////////////////////////////////////////////////////////////////////////
 
             end
 
@@ -700,14 +729,15 @@ module dcache (
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
                 next_block2_dirty = block2_dirty[flush_idx_count];     
-
+               ////////////////////////////////////////////////////////////////////////
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     ccif.dWEN[CPUID] = 1'b1;
                     ccif.ccwrite[CPUID] = 1'b1;
                 end else if (ccif.ccwait[CPUID] && !snoop_hit) begin
                     ccif.dWEN[CPUID] = 1'b0;
                     ccif.ccwrite[CPUID] = 1'b1;
-                end           
+                end
+               ////////////////////////////////////////////////////////////////////////
             end
 
             FLUSHB1W2: begin
@@ -738,7 +768,7 @@ module dcache (
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
                 next_block2_dirty = block2_dirty[flush_idx_count];
-
+               ////////////////////////////////////////////////////////////////////////
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     ccif.dWEN[CPUID] = 1'b1;
                     ccif.ccwrite[CPUID] = 1'b1;
@@ -746,6 +776,7 @@ module dcache (
                     ccif.dWEN[CPUID] = 1'b0;
                     ccif.ccwrite[CPUID] = 1'b1;
                 end
+               ////////////////////////////////////////////////////////////////////////
             end
 
             FLUSHB2W1: begin
@@ -772,7 +803,7 @@ module dcache (
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
                 next_block2_dirty = block2_dirty[flush_idx_count]; 
-
+               ////////////////////////////////////////////////////////////////////////
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     ccif.dWEN[CPUID] = 1'b1;
                     ccif.ccwrite[CPUID] = 1'b1;
@@ -780,6 +811,7 @@ module dcache (
                     ccif.dWEN[CPUID] = 1'b0;
                     ccif.ccwrite[CPUID] = 1'b1;
                 end
+               ////////////////////////////////////////////////////////////////////////
             end
 
             FLUSHB2W2: begin
@@ -810,7 +842,7 @@ module dcache (
 
                 next_block1_dirty = block1_dirty[flush_idx_count];
                 next_block2_dirty = block2_dirty[flush_idx_count];
-
+               ////////////////////////////////////////////////////////////////////////
                 if (ccif.ccwait[CPUID] && snoop_hit) begin
                     ccif.dWEN[CPUID] = 1'b1;
                     ccif.ccwrite[CPUID] = 1'b1;
@@ -818,24 +850,9 @@ module dcache (
                     ccif.dWEN[CPUID] = 1'b0;
                     ccif.ccwrite[CPUID] = 1'b1;
                 end
+               ////////////////////////////////////////////////////////////////////////
             end
         endcase
-        /////////////////////////////////////////////////////////////////////////////////////////
-        /*next_snoop1_tag = next_block1_tag;
-        next_snoop2_tag = next_block2_tag;
-        next_snoop1_dirty = next_block1_dirty;
-        next_snoop2_dirty = next_block2_dirty;
-        next_snoop1_valid = next_block1_valid;
-        next_snoop2_valid = next_block2_valid;
-*/
-        next_snoop1_tag = block1_tag[snoop_sel.idx];
-        next_snoop2_tag = block2_tag[snoop_sel.idx];
-        next_snoop1_dirty = block1_dirty[snoop_sel.idx];
-        next_snoop2_dirty = block2_dirty[snoop_sel.idx];
-        next_snoop1_valid = block1_valid[snoop_sel.idx];
-        next_snoop2_valid = block2_valid[snoop_sel.idx];
-        /////////////////////////////////////////////////////////////////////////////////////////
-
     end
 
     //assign next_recent_block
