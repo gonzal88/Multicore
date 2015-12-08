@@ -520,8 +520,7 @@ module control_unit (control_unit_if.control cuif);
 	      cuif.jr = 1'b0;	
 	      cuif.BNE = 1'b0;
 	   end // if (cuif.opcode == SW)
-	 /*
-	  else if(cuif.opcode == LL)
+	 else if(cuif.opcode == LL)
 	   begin
 	      cuif.jump = 1'b0;
 	      cuif.Branch = 1'b0;
@@ -557,7 +556,6 @@ module control_unit (control_unit_if.control cuif);
 	      cuif.jr = 1'b0;	
 	      cuif.BNE = 1'b0;
 	   end // if (cuif.opcode == SC)
-	  */
 	  else if(cuif.opcode == HALT)
 	    begin
 	       cuif.jump = 1'b0;
