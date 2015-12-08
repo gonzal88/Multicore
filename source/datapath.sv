@@ -112,7 +112,7 @@ module datapath (
    assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit : ((dpif.dhit && !dpif.ihit) || mem.halt_o);
    assign ifid.npc_i = npc;
    assign ifid.dload_i = dpif.dmemload;
-   assign pcif.PCen = ifid.iien || branch_out;
+   assign pcif.PCen = ifid.iien;// || branch_out; changed dec 8
    //assign pcif.PCen = !hazard_enable ? dpif.ihit : dpif.dhit;
    
    assign dpif.imemaddr = pcif.PCcurr;
@@ -162,7 +162,7 @@ module datapath (
    assign idex.RegDest_i = cuif.regDest;
    assign idex.Mem_i = cuif.Mem;
    assign idex.BNE_i = cuif.BNE;
-   assign idex.opcode_i = opcode_t'(ifid.iload_o[31:26]);
+   assign idex.opcode_i = opcode_t'(ifid.iload_o[31:26]); //'
    //assign idex.rdat2_i = rfif.rdat2;
    assign idex.rdat1_i = rfif.rdat1;
    assign idex.rs_i = rtype.rs;

@@ -422,32 +422,32 @@ add wave -noupdate -group datapath1 -group MEM/WB /system_tb/DUT/CPU/DP1/mem/opc
 add wave -noupdate -group datapath1 -group MEM/WB /system_tb/DUT/CPU/DP1/mem/opcode_o
 add wave -noupdate -group datapath1 /system_tb/DUT/CPU/DP1/RegDst_out
 add wave -noupdate -group datapath1 /system_tb/DUT/CPU/DP1/MtR_out
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/halt
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/ihit
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/imemREN
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/imemload
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/imemaddr
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dhit
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/datomic
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemREN
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemWEN
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/flushed
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemload
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemstore
-add wave -noupdate -group dcif0 /system_tb/DUT/CPU/dcif0/dmemaddr
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/halt
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/ihit
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/imemREN
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/imemload
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/imemaddr
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dhit
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/datomic
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemREN
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemWEN
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/flushed
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemload
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemstore
-add wave -noupdate -group dcif1 /system_tb/DUT/CPU/dcif1/dmemaddr
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/halt
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/ihit
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/imemREN
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/imemload
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/imemaddr
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/dhit
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/datomic
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/dmemREN
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/dmemWEN
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/flushed
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/dmemload
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/dmemstore
+add wave -noupdate -expand -group dcif0 /system_tb/DUT/CPU/dcif0/dmemaddr
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/halt
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/ihit
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/imemREN
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/imemload
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/imemaddr
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/dhit
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/datomic
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/dmemREN
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/dmemWEN
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/flushed
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/dmemload
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/dmemstore
+add wave -noupdate -expand -group dcif1 /system_tb/DUT/CPU/dcif1/dmemaddr
 add wave -noupdate -group ICACHE_0 /system_tb/DUT/CPU/CM0/ICACHE/CLK
 add wave -noupdate -group ICACHE_0 /system_tb/DUT/CPU/CM0/ICACHE/nRST
 add wave -noupdate -group ICACHE_0 /system_tb/DUT/CPU/CM0/ICACHE/curr_read_state
@@ -488,11 +488,11 @@ add wave -noupdate -expand -group DCACHE_0 -expand /system_tb/DUT/CPU/CM0/DCACHE
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/snoop2_tag
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/next_snoop1_tag
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/next_snoop2_tag
-add wave -noupdate -expand -group DCACHE_0 -expand /system_tb/DUT/CPU/CM0/DCACHE/snoop1_valid
+add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/snoop1_valid
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/next_snoop1_valid
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/next_snoop2_valid
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/snoop2_valid
-add wave -noupdate -expand -group DCACHE_0 -expand /system_tb/DUT/CPU/CM0/DCACHE/snoop1_dirty
+add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/snoop1_dirty
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/next_snoop1_dirty
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/next_snoop2_dirty
 add wave -noupdate -expand -group DCACHE_0 /system_tb/DUT/CPU/CM0/DCACHE/snoop2_dirty
@@ -604,8 +604,8 @@ add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/memWEN
 add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/memaddr
 add wave -noupdate -expand -group cpu_ram_if /system_tb/DUT/CPU/scif/memstore
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Writes Start} {3415671 ps} 1 Green default} {{Writes End} {4099094 ps} 1} {{Cursor 4} {292979827 ps} 0}
-quietly wave cursor active 3
+WaveRestoreCursors {{Cursor 4} {0 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 166
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -620,4 +620,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {1381380 ns}
+WaveRestoreZoom {0 ps} {3615 ns}
