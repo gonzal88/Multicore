@@ -60,6 +60,10 @@ module dcache (
     logic [7:0] recent_block;
     logic next_recent_block;
 
+    word_t rmwstate, next_rmwstate;
+    logic  rmwstate_valid, next_rmwstate_valid;
+    word_t scstatus;
+
     logic hit;
     logic hit1;
     logic hit2;
@@ -107,6 +111,10 @@ module dcache (
             cc_saved_state <= IDLE;
             recent_block <= '{default:1'b1};
             flush_idx_count <= 3'd0;
+            //////////////////////////////////////////////////////////
+            rmwstate <= 0;
+            rmwstate_valid <= 0;
+            //////////////////////////////////////////////////////////
         end else begin
             curr_state <= next_state;
 
@@ -135,6 +143,10 @@ module dcache (
             recent_block[dcache_sel.idx] <= next_recent_block;
             flush_idx_count <= flush_idx_count_next;
             
+            //////////////////////////////////////////////////////////
+            rmwstate <= next_rmwstate;
+            rmwstate_valid <= next_rmwstate_valid;
+            //////////////////////////////////////////////////////////
         end
     end // always_ff @
 
@@ -309,6 +321,25 @@ module dcache (
         next_snoop2_dirty = block2_dirty[snoop_sel.idx];
         next_snoop1_valid = block1_valid[snoop_sel.idx];
         next_snoop2_valid = block2_valid[snoop_sel.idx];
+
+        //////////////////////////////////////////////////////////
+        // TODO: invalidate link with snoooops/other processor too
+        // TODO: convey sc status to the datapath
+        scstatus = 0;
+
+        if (dcif.dmemREN && dcif.datomic) begin //set link
+            next_rmwstate_valid = 1'b1;
+            next_rmwstate = dcif.dmemaddr;
+        end else if ((dcif.dmemWEN && (dcif.dmemaddr == rmwstate)) || 
+                ((ccif.ccwait[CPUID] || ccif.ccinv[CPUID])&&(ccif.ccsnoopaddr[CPUID] == rmwstate))) begin // Invalidate on this processor's writes
+            next_rmwstate_valid = 1'b0;
+            next_rmwstate = rmwstate;
+        end else begin //maintain link
+            next_rmwstate_valid = rmwstate_valid;
+            next_rmwstate = rmwstate;
+        end
+        //////////////////////////////////////////////////////////
+        
        
         casez(curr_state)
             IDLE: begin
@@ -331,6 +362,14 @@ module dcache (
                         next_block2_data2 = block2_data2[dcache_sel.idx];
                         next_block1_dirty = 1'b1;
                         next_block2_dirty = block2_dirty[dcache_sel.idx];
+                        //////////////////////////////////////////////////////////
+                        if (dcif.datomic && (rmwstate_valid) && (dcif.dmemaddr == rmwstate)) begin
+                            scstatus = 1;
+                        end else if (dcif.datomic) begin
+                            next_block1_data1 = block1_data1[dcache_sel.idx];
+                            scstatus = 0;
+                        end
+                        //////////////////////////////////////////////////////////
                     end else begin // word 2
                         next_block1_data1 = block1_data1[dcache_sel.idx];
                         next_block1_data2 = dcif.dmemstore;
@@ -338,6 +377,14 @@ module dcache (
                         next_block2_data2 = block2_data2[dcache_sel.idx];
                         next_block1_dirty = 1'b1;
                         next_block2_dirty = block2_dirty[dcache_sel.idx];
+                        //////////////////////////////////////////////////////////
+                        if (dcif.datomic && (rmwstate_valid) && (dcif.dmemaddr == rmwstate)) begin
+                            scstatus = 1;
+                        end else if (dcif.datomic) begin
+                            next_block1_data2 = block1_data2[dcache_sel.idx];
+                            scstatus = 0;
+                        end
+                        //////////////////////////////////////////////////////////
                     end
                     
                 end else if (dcif.dmemWEN && ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx]) && (block2_dirty[dcache_sel.idx])) begin //block 2 hit
@@ -348,6 +395,14 @@ module dcache (
                         next_block2_data2 = block2_data2[dcache_sel.idx];
                         next_block1_dirty = block1_dirty[dcache_sel.idx];
                         next_block2_dirty = 1'b1;
+                        //////////////////////////////////////////////////////////
+                        if (dcif.datomic && (rmwstate_valid) && (dcif.dmemaddr == rmwstate)) begin
+                            scstatus = 1;
+                        end else if (dcif.datomic) begin
+                            next_block2_data1 = block2_data1[dcache_sel.idx];
+                            scstatus = 0;
+                        end
+                        //////////////////////////////////////////////////////////
                     end else begin // word 2
                         next_block1_data1 = block1_data1[dcache_sel.idx];
                         next_block1_data2 = block1_data2[dcache_sel.idx];
@@ -355,6 +410,14 @@ module dcache (
                         next_block2_data2 = dcif.dmemstore;
                         next_block1_dirty = block1_dirty[dcache_sel.idx];
                         next_block2_dirty = 1'b1;
+                        //////////////////////////////////////////////////////////
+                        if (dcif.datomic && (rmwstate_valid) && (dcif.dmemaddr == rmwstate)) begin
+                            scstatus = 1;
+                        end else if (dcif.datomic) begin
+                            next_block2_data2 = block2_data2[dcache_sel.idx];
+                            scstatus = 0;
+                        end
+                        //////////////////////////////////////////////////////////
                     end
                 end else begin //retain values
                     next_block1_data1 = block1_data1[dcache_sel.idx];
@@ -863,6 +926,9 @@ module dcache (
             end else begin
                 dcif.dmemload = block1_data1[dcache_sel.idx];
             end
+        end
+        if (dcif.datomic && dcif.dmemWEN) begin
+            dcif.dmemload = scstatus;
         end
     end
 
