@@ -94,9 +94,9 @@ module datapath (
    end // always_comb
    
 
-   
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
    always_comb begin
-      if (exme.opcode_o == LW || exme.opcode_o == SW) begin
+      if (exme.opcode_o == LW || exme.opcode_o == SW || exme.opcode_o == LL || exme.opcode_o == SC) begin
          ifid.iien = dpif.dhit && dpif.ihit && !hazard_enable;
          
       end
@@ -104,6 +104,8 @@ module datapath (
          ifid.iien = !hazard_enable && dpif.ihit;
       end
    end
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
    assign ifid.flush = (cuif.jump || branch_out || cuif.jr) ? dpif.ihit : ((dpif.dhit && !dpif.ihit) || mem.halt_o);
    assign ifid.npc_i = npc;
    assign ifid.dload_i = dpif.dmemload;
@@ -160,7 +162,10 @@ module datapath (
    assign idex.rt_i = rtype.rt;
    assign idex.shamt_i = rtype.shamt;
    assign idex.dload_i = ifid.dload_o;
-   assign idex.enable = (exme.opcode_o == LW || exme.opcode_o == SW) && !mem.halt_o ? dpif.dhit : dpif.ihit; 
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
+   assign idex.enable = (exme.opcode_o == LW || exme.opcode_o == SW || exme.opcode_o == LL || exme.opcode_o == SC) && !mem.halt_o ? dpif.dhit : dpif.ihit;
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
    assign idex.flush = ((hazard_enable || branch_out) && (dpif.ihit && !dpif.dhit)) || mem.halt_o;
    
    
@@ -221,7 +226,9 @@ module datapath (
    assign exme.ALUsource_i = idex.ALUsource_o;
    assign exme.rt_i = idex.rt_o;
    assign exme.dload_i = idex.dload_o;
-   assign exme.enable = (exme.opcode_o == LW || exme.opcode_o == SW) || exme.halt_o ? dpif.dhit : dpif.ihit;
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
+   assign exme.enable = (exme.opcode_o == LW || exme.opcode_o == SW || exme.opcode_o == LL || exme.opcode_o == SC) || exme.halt_o ? dpif.dhit : dpif.ihit;
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
    assign exme.target_i = idex.target_o;
    
 
@@ -253,12 +260,12 @@ module datapath (
    assign dpif.dmemWEN = exme.DWen_o;
    assign mem.dload_i = dpif.dmemload;
    assign mem.ALUsource_i = exme.ALUsource_o;
-   assign mem.enable = (exme.opcode_o == LW || exme.opcode_o == SW) && !mem.halt_o? dpif.dhit : dpif.ihit;
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
+   assign mem.enable = (exme.opcode_o == LW || exme.opcode_o == SW || exme.opcode_o == LL || exme.opcode_o == SC) && !mem.halt_o? dpif.dhit : dpif.ihit;
+   //////////////////////////////////////////////////////////////////////////////////////////////////////////
    assign mem.target_i = exme.target_o;
    assign mem.Addr_i = exme.Jaddr_o;
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////
-   assign dpif.datomic = (exme.opcode_o == LL || exme.opcode_o == SC) ? 1'b1: 1'b0;
-   ///////////////////////////////////////////////////////////////////////////////////////////////////////
+   
    
    
    
@@ -418,7 +425,9 @@ module datapath (
          ALUSrc_out = idex.shamt_o;
       end
       if (wbfwB) begin
-         if(mem.opcode_o == LW) begin
+	 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+         if(mem.opcode_o == LW || mem.opcode_o == LL) begin
+	 //////////////////////////////////////////////////////////////////////////////////////////////////////////
             exme.rdat2_i = mem.dload_o;
             if(idex.ALUsource_o == 1) begin
                ALUSrc_out = idex.extout_o;
@@ -451,8 +460,9 @@ module datapath (
          end // else: !if(mem.opcode_o == LW)
       end // if (wbfwB)
       if(memfwB) begin
-
-         if(exme.opcode_o == LW) begin
+	 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+         if(exme.opcode_o == LW || exme.opcode_o == LL) begin
+	 //////////////////////////////////////////////////////////////////////////////////////////////////////////
             exme.rdat2_i = dpif.dmemload;
             if(idex.ALUsource_o == 1) begin
                ALUSrc_out = idex.extout_o;
@@ -489,7 +499,9 @@ module datapath (
 
       
       if(wbfwA) begin
-         if(mem.opcode_o == LW) begin
+	 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+         if(mem.opcode_o == LW || mem.opcode_o == LL) begin
+	 //////////////////////////////////////////////////////////////////////////////////////////////////////////
             A_out = mem.dload_o;
          end
          else if(mem.opcode_o == JAL) begin
@@ -501,7 +513,9 @@ module datapath (
       end
       if(memfwA) begin
          //A_out = exme.alu_out_o;
-         if(exme.opcode_o == LW) begin
+	 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+         if(exme.opcode_o == LW || exme.opcode_o == LL) begin
+	 //////////////////////////////////////////////////////////////////////////////////////////////////////////
             A_out = dpif.dmemload;
          end
          else if(exme.opcode_o == JAL) begin

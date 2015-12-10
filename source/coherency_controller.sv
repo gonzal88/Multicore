@@ -46,7 +46,7 @@ module coherency_controller (
                 end else if (ccif.dWEN[~cpu_sel]) begin
                     next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE
                     next_state = WST;
-		        end else if (ccif.iREN[cpu_sel]) begin
+		end else if (ccif.iREN[cpu_sel]) begin
                     next_state = IST;
                 end else if (ccif.iREN[~cpu_sel]) begin
                     next_cpu_sel = ~cpu_sel; //Now cpu_sel is always the requestor once out of IDLE. works for 2 cores but with more we could do so with small changes. (cpu_sel + 1) ??? should we do that? would overflow and wrap around properly?
