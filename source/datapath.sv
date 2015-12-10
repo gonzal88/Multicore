@@ -277,6 +277,7 @@ module datapath (
    assign mem.rs_i = exme.rs_o;
    assign mem.rd_i = exme.rd_o;
    assign mem.rt_i = exme.rt_o;
+   assign dpif.datomic = (exme.opcode_o == LL) || (exme.opcode_o == SC);
    assign dpif.dmemaddr = exme.alu_out_o;
    assign dpif.dmemREN = exme.DRen_o;
    assign dpif.dmemWEN = exme.DWen_o;
