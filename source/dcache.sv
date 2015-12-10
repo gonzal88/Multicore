@@ -65,6 +65,9 @@ module dcache (
     logic [7:0] recent_block;
     logic next_recent_block;
 
+    word_t rmwstate, next_rmwstate;
+    logic  rmwstate_valid, next_rmwstate_valid;
+
     logic hit;
     logic hit1;
     logic hit2;
@@ -115,6 +118,8 @@ module dcache (
             cc_saved_state <= IDLE;
             recent_block <= '{default:1'b1};
             flush_idx_count <= 3'd0;
+            rmwstate <= 0;
+            rmwstate_valid <= 0;
         end else begin
             curr_state <= next_state;
 
@@ -143,6 +148,8 @@ module dcache (
             recent_block[dcache_sel.idx] <= next_recent_block;
             flush_idx_count <= flush_idx_count_next;
             
+            rmwstate <= next_rmwstate;
+            rmwstate_valid <= next_rmwstate_valid;
         end
     end // always_ff @
 
@@ -317,6 +324,19 @@ module dcache (
         next_snoop2_dirty = block2_dirty[snoop_sel.idx];
         next_snoop1_valid = block1_valid[snoop_sel.idx];
         next_snoop2_valid = block2_valid[snoop_sel.idx];
+
+        // TODO: invalidate link with snoooops/other processor too
+        // TODO: convey sc status to the datapath
+        if (dcif.dmemREN && dcif.datomic) begin //set link
+            next_rmwstate = dcif.dmemaddr;
+            next_rmwstate_valid = 1'b1;
+        else if (dcif.dmemWEN && (dcif.dmemaddr == rmwstate)) // Invalidate on this processor's writes
+            next_rmwstate = rmwstate;
+            next_rmwstate_valid = 1'b0;
+        end else begin //maintain link
+            next_rmwstate = rmwstate;
+            next_rmwstate_valid = rmwstate_valid;
+        end
        
         casez(curr_state)
             IDLE: begin
