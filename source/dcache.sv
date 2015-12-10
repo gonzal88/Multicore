@@ -35,22 +35,17 @@ module dcache (
     word_t next_block1_data1, next_block1_data2, next_block2_data1, next_block2_data2;
     logic [DTAG_W-1:0] block1_tag [7:0];
     
-    //logic [DTAG_W-1:0] snoop1_tag [7:0];
-    //logic [DTAG_W-1:0] snoop2_tag [7:0];
     logic [DTAG_W-1:0] snoop1_tag;
     logic [DTAG_W-1:0] snoop2_tag;
     logic [DTAG_W-1:0] next_snoop1_tag;
     logic [DTAG_W-1:0] next_snoop2_tag;
-    //logic [7:0] snoop1_valid;
     logic snoop1_valid, snoop2_valid, snoop1_dirty, snoop2_dirty;
     logic next_snoop1_valid;
     logic next_snoop2_valid;
-    //logic [7:0] snoop2_valid;
-    //logic [7:0] snoop1_dirty;
     logic next_snoop1_dirty;
     logic next_snoop2_dirty;
-    //logic [7:0] snoop2_dirty;
-    
+
+   
     logic [DTAG_W-1:0] next_block1_tag;
     logic [DTAG_W-1:0] block2_tag [7:0];
     logic [DTAG_W-1:0] next_block2_tag;
@@ -71,7 +66,6 @@ module dcache (
 
     logic snoop_hit, snoop_hit1, snoop_hit2; 
    
-    //word_t hit_counter, hit_counter_next;
     logic [2:0] flush_idx_count;
     logic [2:0] flush_idx_count_next;
 
@@ -86,12 +80,10 @@ module dcache (
     assign snoop2_valid = block2_valid[snoop_sel.idx];
 
     assign snoop_hit = snoop_hit1 || snoop_hit2;
-    //assign snoop_hit1 = ((snoop1_tag == snoop_sel.tag) && snoop1_valid ) && snoop1_dirty;
-    //assign snoop_hit2 = ((snoop2_tag == snoop_sel.tag) && snoop2_valid ) && snoop2_dirty;
     assign snoop_hit1 = ((snoop1_tag == snoop_sel.tag) && snoop1_valid ) && snoop1_dirty;
     assign snoop_hit2 = ((snoop2_tag == snoop_sel.tag) && snoop2_valid ) && snoop2_dirty;
     
-    assign hit1 = ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx]) ? 1'b1 : 1'b0; // || ((dcache_sel.tag == block2_tag[dcache_sel.idx]) && block2_valid[dcache_sel.idx])) ? 1'b1 : 1'b0 ;
+    assign hit1 = ((dcache_sel.tag == block1_tag[dcache_sel.idx]) && block1_valid[dcache_sel.idx]) ? 1'b1 : 1'b0; 
     assign dcif.dhit = hit && (dcif.dmemWEN || dcif.dmemREN);
     assign hit = hit1 || hit2;
    
