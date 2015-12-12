@@ -1,0 +1,89 @@
+
+Pipeline:
+
+CPUCLK Fmax = 47.82 MHz
+RAMCLK Fmax = 74.07 MHz
+Period = 11 ns
+
+Latency = 55 ns
+MIPS = freq/((CPI)(10^6)) = 45 MHz / ((2.907)(10^6)) = 15.48
+CPI = cycles(from make system.sim)/instructions(from sim -t) = 15697 cycles / 5399 instructions = 2.907
+Fmax = min(CPUCLK, RAMCLK/2) = min(47.82, 37.035) = 37.035 MHz
+Critical Path Setup Slack Worst Case = 8.494 ns
+SPEED UP = 
+
+Pipeline:
+(missing 1st run synthesis for results above)
+# Halted at 156940 time and ran for      15693 cycles.
+
+
+
+
+Unicore Pipeline
+# Halted at 46240 time and ran for       2311 cycles.
+
++-----------------------------------------------------------+
+; Slow 1200mV 85C Model Fmax Summary                        ;
++------------+-----------------+---------------------+------+
+; Fmax       ; Restricted Fmax ; Clock Name          ; Note ;
++------------+-----------------+---------------------+------+
+; 40.9 MHz   ; 40.9 MHz        ; CPUCLK              ;      ;
+; 79.54 MHz  ; 79.54 MHz       ; altera_reserved_tck ;      ;
+; 139.45 MHz ; 139.45 MHz      ; CLK                 ;      ;
++------------+-----------------+---------------------+------+
+
+CPUCLK Fmax 39.77 MHz
+RAMCLK Fmax 79.54 MHz
+Period = 25 ns
+
+Latency = 130 ns
+MIPS = 39.77 MHz / ((17.777)(10^6)) = 2.23
+CPI = 2311 cycles / 130 = 17.777
+Fmax = 39.77
+Critical Path Setup Slack Worst Case = 13.922 ns
+speed up = 0.0003
+
+Multicore Pipeline
+# Halted at 60520 time and ran for       3025 cycles.
++-----------------------------------------------------------+
+; Slow 1200mV 85C Model Fmax Summary                        ;
++------------+-----------------+---------------------+------+
+; Fmax       ; Restricted Fmax ; Clock Name          ; Note ;
++------------+-----------------+---------------------+------+
+; 26.84 MHz  ; 26.84 MHz       ; CPUCLK              ;      ;
+; 50.21 MHz  ; 50.21 MHz       ; altera_reserved_tck ;      ;
+; 135.78 MHz ; 135.78 MHz      ; CLK                 ;      ;
++------------+-----------------+---------------------+------+
+
+CPUCLK Fmax 26.84 MHz
+RAMCLK Fmax 50.21 MHz
+Period = 37 ns
+
+Latency = 185 ns
+MIPS = 25.155 MHz / (()(10^6)) = 2.23
+CPI =  3025 cycles / 145 = 20.86
+Fmax = 25.155
+Critical Path Setup Slack Worst Case = 30.627 ns
+
+speed up = cycles * clock period = .00056
+
+
+
+Singlecycle:
+# Halted at 193088 time and ran for      13791 cycles.
+
+Singlecycle:
+
+CPUCLK Fmax = 36.08 MHz
+RAMCLK Fmax = 65.54 MHz
+Period = 14 ns
+
+Latency = 14 ns
+MIPS = freq/((CPI)(10^6)) = 35.714 MHz / ((2.554)(10^6)) = 13.98
+CPI = cycles(from make system.sim)/instructions(from sim -t) = 13791 cycles / 5399 instructions = 2.554
+Fmax = min(CPUCLK, RAMCLK/2) = min(36.08, 32.77) = 32.77 MHz
+Critical Path Setup Slack Worst Case = 26.596 ns
+
+
+
+

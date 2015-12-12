@@ -114,7 +114,7 @@ m_end:
 
 org 0x300
 size: 
-cfw 1
+cfw 5
 data:
 cfw 90
 cfw 81

@@ -160,6 +160,7 @@ module coherency_controller (
                 ccif.dwait[~cpu_sel] = !(ccif.ramstate == ACCESS);
                 ccif.dwait[cpu_sel] = !(ccif.ramstate == ACCESS);
                 ccif.ramaddr = ccif.daddr[cpu_sel];
+                ccif.ramstore = ccif.dstore[~cpu_sel];
                 ccif.ramWEN = 1'b1;
                 ccif.ccinv[~cpu_sel] = ccif.ccwrite[cpu_sel];
                 ccif.ccsnoopaddr[~cpu_sel] = ccif.daddr[cpu_sel]; 
